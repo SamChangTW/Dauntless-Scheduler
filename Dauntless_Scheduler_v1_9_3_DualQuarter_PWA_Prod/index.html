@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Dauntless Scheduler v1.9.3 — Dual Quarter</title>
+  <link rel="icon" href="favicon.ico"/>
+  <link rel="apple-touch-icon" href="icons/apple-180.png"/>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <meta name="theme-color" content="#1f2124"/>
+  <meta name="description" content="TSAA 無畏者排程器：僅顯示週日、雙季度視圖、行政院假期自動避開、離線可用（PWA）。"/>
+</head>
+<body>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <h1>Dauntless Scheduler v1.9.3</h1>
+        <div class="sub">雙季度視圖｜僅顯示週日｜假期自動避開｜離線可用（PWA）</div>
+      </div>
+      <div class="row">
+        <button id="btnInstall" class="gold">＋ 加到主畫面</button>
+        <button id="btnLink">🔗 連入（Holiday / Core / Log）</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="row" style="justify-content:space-between">
+        <div class="legend">
+          <span class="chip"><span class="dot" style="background:var(--ok)"></span>可排</span>
+          <span class="chip"><span class="dot" style="background:var(--busy)"></span>已排</span>
+          <span class="chip"><span class="dot" style="background:var(--avoid)"></span>避開</span>
+          <span class="chip"><span class="dot" style="background:var(--empty)"></span>未設定</span>
+        </div>
+        <div class="row">
+          <select id="selStart">
+            <option value="2025-11">起：2025/11</option>
+            <option value="2026-01">起：2026/01</option>
+            <option value="2026-04">起：2026/04</option>
+          </select>
+          <button id="btnShowAvoid" class="badge" style="border-color:var(--avoid);color:#ffb3bb">🔴 本雙季避開</button>
+          <button id="btnExport">匯出報表</button>
+          <button id="btnReset">全部重設</button>
+        </div>
+      </div>
+      <div class="note">假期資料取自雲端 <b>Shared_Data/Holiday/Holiday_CoreFeed.xlsx</b>（以「連入」選檔）。主排程為 <b>CoreControl/TSAA_Schedule_Core_v1.4.3.xlsx</b>；Log 為 <b>Reports/Scheduler_Log_v1.4.3.xlsx</b>。</div>
+    </div>
+
+    <div id="q1" class="panel">
+      <div class="qhdr"><div class="qtitle" id="q1Title">Q?（M–M）</div></div>
+      <div id="q1List"></div>
+    </div>
+
+    <div id="q2" class="panel">
+      <div class="qhdr"><div class="qtitle" id="q2Title">Q?（M–M）</div></div>
+      <div id="q2List"></div>
+    </div>
+
+    <div class="footer">Design: Sam Chang × C⁵ ｜ 專業（鈦灰 × 香檳金）</div>
+  </div>
+
+  <!-- 編輯 -->
+  <dialog id="dlgEdit">
+    <form method="dialog">
+      <h3 style="margin:6px 0;color:#C8B47E">編輯週日</h3>
+      <div class="row">
+        <div>日期：</div><div id="f_date"></div>
+      </div>
+      <div class="row">
+        <label>狀態
+          <select id="f_state">
+            <option value="ok">可排</option>
+            <option value="busy">已排</option>
+            <option value="avoid">避開</option>
+            <option value="empty">未設定</option>
+          </select>
+        </label>
+        <label style="flex:1">備註
+          <input id="f_note" style="width:100%"/>
+        </label>
+      </div>
+      <div class="row" style="justify-content:flex-end;margin-top:8px">
+        <button value="cancel">取消</button>
+        <button id="btnSave" class="gold">儲存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- 避開清單（雙季） -->
+  <dialog id="dlgAvoid">
+    <form method="dialog">
+      <h3 style="margin:6px 0;color:#C8B47E" id="avoidTitle">📅 避開日期（雙季）</h3>
+      <div id="avoidList" class="panel" style="max-height:50vh;overflow:auto"></div>
+      <div class="row" style="justify-content:flex-end;margin-top:8px">
+        <button value="cancel">關閉</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgLink">
+    <form method="dialog">
+      <h3 style="margin:6px 0;color:#C8B47E">連入檔案（各選一次即可）</h3>
+      <div class="panel">
+        <div>Holiday_CoreFeed.xlsx（Shared_Data/Holiday）</div>
+        <input type="file" id="pickHoliday" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+      </div>
+      <div class="panel">
+        <div>TSAA_Schedule_Core_v1.4.3.xlsx（CoreControl）</div>
+        <input type="file" id="pickCore" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+      </div>
+      <div class="panel">
+        <div>Scheduler_Log_v1.4.3.xlsx（Reports，可略）</div>
+        <input type="file" id="pickLog" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+      </div>
+      <div class="row" style="justify-content:flex-end">
+        <button value="cancel">完成</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.20.2/dist/xlsx.full.min.js" integrity="" crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+  <script>if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js');}</script>
+</body>
+</html>
