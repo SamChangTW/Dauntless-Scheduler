@@ -4,13 +4,22 @@
 const CLOUD = {
   SHEET_URL_SCHEDULE_CSV: https://docs.google.com/spreadsheets/d/e/2PACX-1vT-aNX0ZKFieLDhZpFlRuxioW_plgSinAG10yvaZYCGNzVIDcNTl22r-SYZ_zUuVfFxWWRUPV8USsF3/pub?output=csv
   SHEET_URL_HOLIDAY_CSV: https://docs.google.com/spreadsheets/d/e/2PACX-1vQPWkSisyPrrYRbZirLg6Xc9v1Z7eQHeO-aBNYbopP2pfqj5PAkqhznaYnmJzQh2H1PRnL_-GeMThYT/pub?output=csv
-  API_URL: https://script.google.com/macros/s/AKfycbz-C77zAge72GqWH5MZRAaT7jpeczs4GRIE9qpZPpWrIb2n8Qfrl6MVsQ9PpEB71QyX/exec
+  API_URL: https://script.google.com/macros/s/AKfycbyG-9dcgQyZ66tOGjmjwiaUOwM-VmKWaRM4AFjASDPF3r3ONP0ILPh_LeOA7sADcATZ/exec
   COLS: { date:["date","日期"], league:["league","聯盟"], status:["status","狀態"], note:["note","備註"] }
 };
 
 async function fetchCSV(url){
   const res = await fetch(`${CLOUD.API_URL}?type=schedule`)
-;
+;// 抓賽程表
+fetch(`${CLOUD.API_URL}?type=schedule`)
+  .then(r => r.text())
+  .then(csv => console.log(csv));
+
+// 抓假日表
+fetch(`${CLOUD.API_URL}?type=holiday`)
+  .then(r => r.text())
+  .then(csv => console.log(csv));
+
   if(!res.ok) throw new Error("CSV 讀取失敗");
   const text = await res.text();
   const rows = text.trim().split(/\r?\n/).map(r => r.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/));
