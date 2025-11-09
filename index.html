@@ -1,100 +1,133 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Dauntless Scheduler — CloudLink v2.2</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#101216"/>
-  <link rel="icon" href="icons/icon-192.png">
-  <style>
-    :root{--bg:#0f1115;--card:#171a21;--text:#e8e8ea;--muted:#a8acb3;--gold:#c8b47e;--accent:#23c9ff;--danger:#ff5577;}
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto}
-    header{padding:18px 16px;border-bottom:1px solid #22262e;display:flex;align-items:center;gap:12px;position:sticky;top:0;background:linear-gradient(#0f1115,#0f11158c)}
-    h1{font-size:18px;margin:0} .badge{padding:2px 8px;border-radius:999px;background:#1f232b;color:var(--gold);border:1px solid #2b2f38;font-size:12px}
-    main{max-width:980px;margin:0 auto;padding:16px;display:grid;gap:16px}
-    .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-    .btn{background:#1c2028;color:#fff;border:1px solid #2a2e37;border-radius:12px;padding:10px 14px;cursor:pointer}
-    .btn:hover{border-color:#3b4150}
-    .btn.primary{background:#252a34;border-color:#2f3644}
-    .btn.gold{background:#1f1a10;border-color:#4b4025;color:var(--gold)}
-    .btn.danger{background:#2a1418;border-color:#51242c;color:#ff91a5}
-    .card{background:var(--card);border:1px solid #22262e;border-radius:16px;padding:16px}
-    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-    .kpi{background:#13171e;border:1px solid #212632;border-radius:14px;padding:12px}
-    .kpi b{display:block;font-size:22px;margin-top:6px;color:var(--gold)}
-    .list{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .pill{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;border:1px solid #2a2f3a;background:#141821}
-    .dot{width:10px;height:10px;border-radius:50%}
-    .dot.scheduled{background:#23c9ff}
-    .dot.avoid{background:#ff5577}
-    .muted{color:var(--muted)}
-    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-    .qcard h3{margin:0 0 10px 0;font-size:15px;color:var(--gold)}
-    .datepill{padding:8px 10px;background:#11151c;border:1px solid #252b38;border-radius:10px;display:inline-flex;align-items:center;gap:8px;margin:4px 6px 0 0}
-    .small{font-size:12px}
-    dialog{border:none;border-radius:16px;max-width:620px;width:calc(100% - 24px);background:#12161d;color:#fff}
-    dialog .head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #222937;padding:12px 14px}
-    dialog .body{padding:14px}
-    .right{margin-left:auto}
-    footer{padding:24px;color:#9096a3;text-align:center}
-    .hint{font-size:12px;color:#9aa0aa}
-    @media (max-width:840px){.kpis{grid-template-columns:repeat(2,1fr)} .list{grid-template-columns:1fr} .grid{grid-template-columns:1fr}}
-  </style>
-  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script defer src="app.js"></script>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Dauntless Scheduler v2.3 — CloudLink</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1E1F23"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{--bg:#181A1F;--panel:#21242b;--ink:#e8e6df;--muted:#b0b0b0;--gold:#C8B47E;--chip:#2b2f36;--chip2:#303641}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 120px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+h1{font-size:22px;margin:0;font-weight:700}
+.badge{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(180deg,#262a31,#1f232a);padding:8px 12px;border-radius:12px;border:1px solid #333}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.card{background:var(--panel);border:1px solid #2f3440;border-radius:16px;padding:12px 12px}
+.title{display:flex;align-items:center;gap:10px;margin:2px 0 8px}
+.title b{color:var(--gold);font-size:14px}
+.pill{display:inline-flex;gap:6px;align-items:center;background:#2b2f36;border:1px solid #3a3f4a;color:#cfd2d7;border-radius:999px;padding:6px 10px;font-size:12px;margin-right:8px}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+.kpi .metric{background:var(--chip);border:1px solid #343a46;border-radius:12px;padding:10px}
+.metric h3{margin:4px 0 6px;font-size:12px;color:#b8bec8;font-weight:500}
+.metric .num{font-size:22px;font-weight:700;color:#fff}
+.slot{display:flex;align-items:center;justify-content:space-between;background:var(--chip2);border:1px solid #3b4150;border-radius:14px;padding:10px 12px;margin:8px 0}
+.slot .left{display:flex;align-items:center;gap:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:#6b7c90;opacity:.9}
+.slot .date{font-weight:700}
+.slot .range{font-size:12px;color:#9aa3ad}
+.slot .tags{display:flex;gap:6px}
+.tag{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid #3a3f4a}
+.tag.green{background:#1e2a26;color:#9fe6cc;border-color:#1f3b33}
+.tag.red{background:#311a21;color:#ffb8c7;border-color:#4b2731}
+.btn{appearance:none;border:none;background:#2b2f36;color:#eaeaea;border:1px solid #444;padding:10px 14px;border-radius:12px;font-weight:600;letter-spacing:.3px;cursor:pointer}
+.btn.gold{background:linear-gradient(180deg,#3a3a35,#2a2a27);color:var(--gold);border-color:#47443a}
+.btn.primary{background:#2f6;color:#081;border-color:#194}
+.btn.block{width:100%}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+/* modal */
+dialog{border:none;background:#21242b;color:var(--ink);border-radius:16px;max-width:520px;width:92%;padding:18px 16px;border:1px solid #343a46}
+.form{display:grid;gap:10px;margin-top:6px}
+label{font-size:12px;color:#c7c7c7}
+input[type="date"],select,input[type="text"]{width:100%;padding:10px;border-radius:10px;border:1px solid #3b4150;background:#1d2026;color:#e9ecef}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn.small{padding:6px 10px;border-radius:10px;font-size:12px}
+.warn{color:#ffb3bf;font-size:12px}
+@media (max-width:680px){.kpi{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-<header>
-  <img src="icons/icon-192.png" width="24" height="24" alt=""/>
-  <h1>Dauntless Scheduler v2.2 • CloudLink</h1>
-  <span class="badge">兩季檢視｜專業（鈦灰 × 香檳金）</span>
-  <span class="right hint">Design: Sam Chang × C⁵</span>
-</header>
+<div class="wrap">
+  <header>
+    <h1>Dauntless Scheduler v2.3 — <span style="color:#C8B47E">CloudLink</span></h1>
+    <button class="btn gold" id="btnInstall">加到主畫面</button>
+  </header>
+  <div class="toolbar">
+    <span class="pill">資料源：<b id="srcLabel">雲端</b></span>
+    <span class="pill"><span style="width:10px;height:10px;border-radius:50%;background:#9fe6cc;display:inline-block"></span> 已排賽程</span>
+    <span class="pill"><span style="width:10px;height:10px;border-radius:50%;background:#ff6b81;display:inline-block"></span> 需避開（日）</span>
+    <button id="btnNew" class="btn">📝 建立 / 編輯賽程</button>
+    <button id="btnAvoid" class="btn">🔴 查詢需避開（日）</button>
+    <button id="btnReload" class="btn">↻ 重新載入</button>
+  </div>
 
-<main>
-  <section class="card">
+  <div class="kpi">
+    <div class="metric"><h3>本季週日數</h3><div class="num" id="k_total">—</div></div>
+    <div class="metric"><h3>本季已排</h3><div class="num" id="k_q1">—</div></div>
+    <div class="metric"><h3>次季已排</h3><div class="num" id="k_q2">—</div></div>
+    <div class="metric"><h3>需避開（總）</h3><div class="num" id="k_avoid">—</div></div>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <div class="title"><b id="q1Title">本季（日）</b></div>
+      <div id="q1List"></div>
+    </section>
+    <section class="card">
+      <div class="title"><b id="q2Title">次季（日）</b></div>
+      <div id="q2List"></div>
+    </section>
+  </div>
+</div>
+
+<footer style="position:fixed;left:0;right:0;bottom:0;background:rgba(20,22,26,.92);border-top:1px solid #2f3440;display:flex;justify-content:center;padding:10px 0;color:#9aa3ad">© 2025 Dauntless Scheduler — CloudLink v2.3</footer>
+
+<dialog id="editDlg">
+  <form method="dialog" class="form" id="editForm">
+    <h3 style="margin:0">建立 / 編輯賽程</h3>
     <div class="row">
-      <button class="btn primary" id="btnImportSchedule">匯入賽程（TSAA_Schedule_Core_v1.4.3.xlsx）</button>
-      <button class="btn primary" id="btnImportHoliday">匯入連假（Holiday_CoreFeed.xlsx）</button>
-      <button class="btn gold" id="btnSave">儲存設定</button>
-      <button class="btn" id="btnReset">重置</button>
-      <button class="btn danger right" id="btnAvoid">需避開（日）</button>
+      <div>
+        <label>日期（週日）</label>
+        <input type="date" id="f_date" required />
+      </div>
+      <div>
+        <label>聯盟</label>
+        <select id="f_league">
+          <option value="TSAA">TSAA</option>
+          <option value="其他">其他</option>
+        </select>
+      </div>
     </div>
-    <div class="row" style="margin-top:10px">
-      <span class="pill"><span class="dot scheduled"></span> 已排賽程</span>
-      <span class="pill"><span class="dot avoid"></span> 需避開（連假／重疊）</span>
-      <span class="muted">從今天（自動）往後顯示兩季</span>
+    <div class="row">
+      <div>
+        <label>狀態</label>
+        <select id="f_status">
+          <option value="已排">已排</option>
+          <option value="需避開">需避開</option>
+        </select>
+      </div>
+      <div>
+        <label>備註（可留空）</label>
+        <input type="text" id="f_note" placeholder="可選填簡短備註"/>
+      </div>
     </div>
-    <input type="file" id="fileSchedule" accept=".xlsx,.xls" hidden>
-    <input type="file" id="fileHoliday" accept=".xlsx,.xls" hidden>
-  </section>
-
-  <section class="card kpis" id="kpis">
-    <div class="kpi"><span class="muted">本季週日數</span><b id="kpiSunA">-</b></div>
-    <div class="kpi"><span class="muted">本季已排</span><b id="kpiSchA">-</b></div>
-    <div class="kpi"><span class="muted">次季已排</span><b id="kpiSchB">-</b></div>
-    <div class="kpi"><span class="muted">需避開（總）</span><b id="kpiAvoid">-</b></div>
-  </section>
-
-  <section class="card grid">
-    <div class="qcard">
-      <h3 id="qA">本季（日）</h3>
-      <div id="listA" class="list"></div>
+    <div class="warn">※ 寫入雲端需先在 app.js 填好 Google Apps Script API_URL。</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+      <button class="btn small" value="cancel">取消</button>
+      <button class="btn small primary" id="btnSave" value="default">儲存</button>
     </div>
-    <div class="qcard">
-      <h3 id="qB">次季（日）</h3>
-      <div id="listB" class="list"></div>
-    </div>
-  </section>
-</main>
-
-<dialog id="dlgAvoid">
-  <div class="head"><b>需避開的週日（兩季）</b><button class="btn" id="btnCloseDlg">關閉</button></div>
-  <div class="body" id="avoidBody"></div>
+  </form>
 </dialog>
 
-<footer>© 2025 Dauntless Scheduler — CloudLink v2.2</footer>
+<dialog id="avoidDlg">
+  <div class="title"><b>需避開（日）清單 — 兩季</b></div>
+  <div id="avoidList"></div>
+  <div style="text-align:right;margin-top:10px"><button class="btn small" onclick="document.getElementById('avoidDlg').close()">關閉</button></div>
+</dialog>
 
+<script src="app.js"></script>
+<script> if('serviceWorker' in navigator){navigator.serviceWorker.register('./service-worker.js');} </script>
 </body>
 </html>

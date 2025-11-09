@@ -1,5 +1,18 @@
-const CACHE='ds22-v1';
-const ASSETS=['./','./index.html','./app.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))))});
-self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=> r || fetch(e.request)));});
+self.addEventListener('install',e=>self.skipWaiting());
+self.addEventListener('activate',e=>self.clients.claim());
+const CACHE='dauntless-v2-3';
+const CORE=['./','./index.html','./app.js','./manifest.webmanifest'];
+self.addEventListener('fetch',e=>{
+  const req=e.request;
+  if(req.method!=='GET') return;
+  e.respondWith((async()=>{
+    const cache=await caches.open(CACHE);
+    const hit=await cache.match(req);
+    if(hit) return hit;
+    try{
+      const res=await fetch(req);
+      cache.put(req,res.clone());
+      return res;
+    }catch(_){ return hit||Response.error(); }
+  })());
+});

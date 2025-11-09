@@ -1,10 +1,10 @@
 {
-  "name": "Dauntless Scheduler v2.2 — CloudLink",
+  "name": "Dauntless Scheduler v2.3 — CloudLink",
   "short_name": "Dauntless",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#101216",
-  "theme_color": "#101216",
+  "background_color": "#181A1F",
+  "theme_color": "#1E1F23",
   "icons": [
     {
       "src": "icons/icon-192.png",
