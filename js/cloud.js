@@ -4,7 +4,7 @@
 const CLOUD = {
   SHEET_URL_SCHEDULE_CSV: https://docs.google.com/spreadsheets/d/e/2PACX-1vT-aNX0ZKFieLDhZpFlRuxioW_plgSinAG10yvaZYCGNzVIDcNTl22r-SYZ_zUuVfFxWWRUPV8USsF3/pub?output=csv
   SHEET_URL_HOLIDAY_CSV: https://docs.google.com/spreadsheets/d/e/2PACX-1vQPWkSisyPrrYRbZirLg6Xc9v1Z7eQHeO-aBNYbopP2pfqj5PAkqhznaYnmJzQh2H1PRnL_-GeMThYT/pub?output=csv
-  API_URL: https://script.google.com/macros/library/d/1FTNN-HVueA7O56j4w5tMqQMTcTlQ8NTx1LMMb99z7LAHzHXiDmchijat/3
+  API_URL: https://script.google.com/macros/s/AKfycbz-C77zAge72GqWH5MZRAaT7jpeczs4GRIE9qpZPpWrIb2n8Qfrl6MVsQ9PpEB71QyX/exec
   COLS: { date:["date","日期"], league:["league","聯盟"], status:["status","狀態"], note:["note","備註"] }
 };
 
