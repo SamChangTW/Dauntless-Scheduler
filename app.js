@@ -2,7 +2,7 @@ const CONFIG = {
   MODE: "Cloud",
   SHEET_URL_SCHEDULE_CSV: "你的 TSAA_Schedule_Core（已發佈CSV）網址",
   SHEET_URL_HOLIDAY_CSV: "你的 Holiday_CoreFeed（已發佈CSV）網址",
-  API_URL: "你的 Apps Script Web App URL（用來寫回）"
+  API_URL: https://script.google.com/macros/s/AKfycbwZiJ0BQ8dLjTvTj0eWiuLb4lhK8CH0eUAVImkkMVVow5oXIfvukvMjC-lc7WYaoEipaQ/exec
 };
 
 const qs=s=>document.querySelector(s);const fmt=d=>new Date(d).toISOString().slice(0,10);
