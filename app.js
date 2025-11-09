@@ -1,4 +1,10 @@
-const CONFIG={MODE:"Cloud",SHEET_URL_SCHEDULE_CSV:"%%SCHEDULE_CSV_URL%%",SHEET_URL_HOLIDAY_CSV:"%%HOLIDAY_CSV_URL%%",API_URL:"%%APPS_SCRIPT_URL%%"};
+const CONFIG = {
+  MODE: "Cloud",
+  SHEET_URL_SCHEDULE_CSV: "你的 TSAA_Schedule_Core（已發佈CSV）網址",
+  SHEET_URL_HOLIDAY_CSV: "你的 Holiday_CoreFeed（已發佈CSV）網址",
+  API_URL: "你的 Apps Script Web App URL（用來寫回）"
+};
+
 const qs=s=>document.querySelector(s);const fmt=d=>new Date(d).toISOString().slice(0,10);
 function upcomingTwoQuartersFromToday(){const t=new Date();const y=t.getFullYear();const m=t.getMonth();const q=Math.floor(m/3);const qRange=(Y,Q)=>{const s=Q*3;return[new Date(Y,s,1),new Date(Y,s+3,0)]};const [q1s,q1e]=qRange(y,q);const n=(q+1)%4;const y2=n<q?y+1:y;const [q2s,q2e]=qRange(y2,n);return{q1s,q1e,q2s,q2e}}
 function sundaysBetween(s,e){const a=[];let d=new Date(s);d.setDate(d.getDate()+((7-d.getDay())%7));while(d<=e){a.push(fmt(d));d.setDate(d.getDate()+7)}return a}
