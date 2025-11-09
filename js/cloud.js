@@ -2,9 +2,9 @@
 // 將下列三個網址換成你的 Google Sheets「發佈為 CSV」與 Apps Script Web App（exec）
 // 若留空，系統會自動使用本機 LocalStorage 測試模式
 const CLOUD = {
-  SCHEDULE_CSV: "", // 例如：https://docs.google.com/spreadsheets/d/e/.../pub?output=csv
-  HOLIDAY_CSV:  "", // 例如：https://docs.google.com/spreadsheets/d/e/.../pub?output=csv
-  APPS_SCRIPT_URL: "", // 例如：https://script.google.com/macros/s/.../exec
+  SHEET_URL_SCHEDULE_CSV: https://docs.google.com/spreadsheets/d/e/2PACX-1vS0NpdAV973z09CAlVHdjBszhneoI-KA2WNKh65bQw7wlz3r5Kax-YgA0oaw_Rtj3bVZZ9hkTyMzBUS/pub?output=csv
+  SHEET_URL_HOLIDAY_CSV: https://docs.google.com/spreadsheets/d/e/2PACX-1vQPWkSisyPrrYRbZirLg6Xc9v1Z7eQHeO-aBNYbopP2pfqj5PAkqhznaYnmJzQh2H1PRnL_-GeMThYT/pub?output=csv
+  API_URL: https://script.google.com/macros/s/AKfycbwZiJ0BQ8dLjTvTj0eWiuLb4lhK8CH0eUAVImkkMVVow5oXIfvukvMjC-lc7WYaoEipaQ/exec
   COLS: { date:["date","日期"], league:["league","聯盟"], status:["status","狀態"], note:["note","備註"] }
 };
 
