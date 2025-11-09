@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Dauntless Scheduler — CloudLink v2.2</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#101216"/>
+  <link rel="icon" href="icons/icon-192.png">
+  <style>
+    :root{--bg:#0f1115;--card:#171a21;--text:#e8e8ea;--muted:#a8acb3;--gold:#c8b47e;--accent:#23c9ff;--danger:#ff5577;}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto}
+    header{padding:18px 16px;border-bottom:1px solid #22262e;display:flex;align-items:center;gap:12px;position:sticky;top:0;background:linear-gradient(#0f1115,#0f11158c)}
+    h1{font-size:18px;margin:0} .badge{padding:2px 8px;border-radius:999px;background:#1f232b;color:var(--gold);border:1px solid #2b2f38;font-size:12px}
+    main{max-width:980px;margin:0 auto;padding:16px;display:grid;gap:16px}
+    .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .btn{background:#1c2028;color:#fff;border:1px solid #2a2e37;border-radius:12px;padding:10px 14px;cursor:pointer}
+    .btn:hover{border-color:#3b4150}
+    .btn.primary{background:#252a34;border-color:#2f3644}
+    .btn.gold{background:#1f1a10;border-color:#4b4025;color:var(--gold)}
+    .btn.danger{background:#2a1418;border-color:#51242c;color:#ff91a5}
+    .card{background:var(--card);border:1px solid #22262e;border-radius:16px;padding:16px}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .kpi{background:#13171e;border:1px solid #212632;border-radius:14px;padding:12px}
+    .kpi b{display:block;font-size:22px;margin-top:6px;color:var(--gold)}
+    .list{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .pill{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;border:1px solid #2a2f3a;background:#141821}
+    .dot{width:10px;height:10px;border-radius:50%}
+    .dot.scheduled{background:#23c9ff}
+    .dot.avoid{background:#ff5577}
+    .muted{color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .qcard h3{margin:0 0 10px 0;font-size:15px;color:var(--gold)}
+    .datepill{padding:8px 10px;background:#11151c;border:1px solid #252b38;border-radius:10px;display:inline-flex;align-items:center;gap:8px;margin:4px 6px 0 0}
+    .small{font-size:12px}
+    dialog{border:none;border-radius:16px;max-width:620px;width:calc(100% - 24px);background:#12161d;color:#fff}
+    dialog .head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #222937;padding:12px 14px}
+    dialog .body{padding:14px}
+    .right{margin-left:auto}
+    footer{padding:24px;color:#9096a3;text-align:center}
+    .hint{font-size:12px;color:#9aa0aa}
+    @media (max-width:840px){.kpis{grid-template-columns:repeat(2,1fr)} .list{grid-template-columns:1fr} .grid{grid-template-columns:1fr}}
+  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+<header>
+  <img src="icons/icon-192.png" width="24" height="24" alt=""/>
+  <h1>Dauntless Scheduler v2.2 • CloudLink</h1>
+  <span class="badge">兩季檢視｜專業（鈦灰 × 香檳金）</span>
+  <span class="right hint">Design: Sam Chang × C⁵</span>
+</header>
+
+<main>
+  <section class="card">
+    <div class="row">
+      <button class="btn primary" id="btnImportSchedule">匯入賽程（TSAA_Schedule_Core_v1.4.3.xlsx）</button>
+      <button class="btn primary" id="btnImportHoliday">匯入連假（Holiday_CoreFeed.xlsx）</button>
+      <button class="btn gold" id="btnSave">儲存設定</button>
+      <button class="btn" id="btnReset">重置</button>
+      <button class="btn danger right" id="btnAvoid">需避開（日）</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <span class="pill"><span class="dot scheduled"></span> 已排賽程</span>
+      <span class="pill"><span class="dot avoid"></span> 需避開（連假／重疊）</span>
+      <span class="muted">從今天（自動）往後顯示兩季</span>
+    </div>
+    <input type="file" id="fileSchedule" accept=".xlsx,.xls" hidden>
+    <input type="file" id="fileHoliday" accept=".xlsx,.xls" hidden>
+  </section>
+
+  <section class="card kpis" id="kpis">
+    <div class="kpi"><span class="muted">本季週日數</span><b id="kpiSunA">-</b></div>
+    <div class="kpi"><span class="muted">本季已排</span><b id="kpiSchA">-</b></div>
+    <div class="kpi"><span class="muted">次季已排</span><b id="kpiSchB">-</b></div>
+    <div class="kpi"><span class="muted">需避開（總）</span><b id="kpiAvoid">-</b></div>
+  </section>
+
+  <section class="card grid">
+    <div class="qcard">
+      <h3 id="qA">本季（日）</h3>
+      <div id="listA" class="list"></div>
+    </div>
+    <div class="qcard">
+      <h3 id="qB">次季（日）</h3>
+      <div id="listB" class="list"></div>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlgAvoid">
+  <div class="head"><b>需避開的週日（兩季）</b><button class="btn" id="btnCloseDlg">關閉</button></div>
+  <div class="body" id="avoidBody"></div>
+</dialog>
+
+<footer>© 2025 Dauntless Scheduler — CloudLink v2.2</footer>
+
+</body>
+</html>
