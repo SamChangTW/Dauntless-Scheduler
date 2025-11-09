@@ -9,7 +9,8 @@ const CLOUD = {
 };
 
 async function fetchCSV(url){
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetch(`${CLOUD.API_URL}?type=schedule`)
+;
   if(!res.ok) throw new Error("CSV 讀取失敗");
   const text = await res.text();
   const rows = text.trim().split(/\r?\n/).map(r => r.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/));
