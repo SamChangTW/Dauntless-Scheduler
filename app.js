@@ -1,7 +1,7 @@
 const CONFIG = {
   MODE: "Cloud",
-  SHEET_URL_SCHEDULE_CSV: "你的 TSAA_Schedule_Core（已發佈CSV）網址",
-  SHEET_URL_HOLIDAY_CSV: "你的 Holiday_CoreFeed（已發佈CSV）網址",
+  SHEET_URL_SCHEDULE_CSV: https://docs.google.com/spreadsheets/d/e/2PACX-1vS0NpdAV973z09CAlVHdjBszhneoI-KA2WNKh65bQw7wlz3r5Kax-YgA0oaw_Rtj3bVZZ9hkTyMzBUS/pub?output=csv
+  SHEET_URL_HOLIDAY_CSV: https://docs.google.com/spreadsheets/d/e/2PACX-1vQPWkSisyPrrYRbZirLg6Xc9v1Z7eQHeO-aBNYbopP2pfqj5PAkqhznaYnmJzQh2H1PRnL_-GeMThYT/pub?output=csv
   API_URL: https://script.google.com/macros/s/AKfycbwZiJ0BQ8dLjTvTj0eWiuLb4lhK8CH0eUAVImkkMVVow5oXIfvukvMjC-lc7WYaoEipaQ/exec
 };
 
