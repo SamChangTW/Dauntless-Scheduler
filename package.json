@@ -1,0 +1,8 @@
+{
+  "name": "dauntless-scheduler",
+  "version": "2.7.0",
+  "private": true,
+  "scripts": {
+    "start": "python -m http.server 8080"
+  }
+}
