@@ -11,5 +11,31 @@ async function fetchCSV(u){const r=await fetch(u,{cache:"no-store"});if(!r.ok)th
 function calcSundaysTwoQuarters(){const t=new Date();const all=[];const s=new Date(t);s.setDate(s.getDate()-((s.getDay()+6)%7));for(let i=0;i<26;i++){const d=new Date(s);d.setDate(s.getDate()+i*7);all.push(ymd(d))}return all}
 function renderSlots(all,b,hol){const A=qs('#listThis'),B=qs('#listNext');A.innerHTML="";B.innerHTML="";const half=Math.ceil(all.length/2);const m=new Set(b);const a=new Set(hol);const mk=d=>{const div=document.createElement('div');div.className="slot";div.textContent=d;if(m.has(d))div.style.borderColor="#2d5f3c";if(a.has(d))div.style.borderColor="#5f2d2d";return div};all.slice(0,half).forEach(d=>A.appendChild(mk(d)));all.slice(half).forEach(d=>B.appendChild(mk(d)));qs('#weeksThis').textContent=String(half);qs('#countThis').textContent=String(b.filter(d=>all.indexOf(d)<half).length);qs('#countNext').textContent=String(b.filter(d=>all.indexOf(d)>=half).length);qs('#countAvoid').textContent=String(hol.length)}
 async function bootstrap(){log("Bootstrap start");try{log("fetch schedule CSV…");const s=await fetchCSV(CONFIG.SHEET_URL_SCHEDULE_CSV);log("fetch holiday CSV…");const h=await fetchCSV(CONFIG.SHEET_URL_HOLIDAY_CSV);const sd=s.map(r=>r.date).filter(Boolean);const hd=h.map(r=>r.date).filter(Boolean);const all=calcSundaysTwoQuarters();renderSlots(all,sd,hd);log("✓ 系統初始化完成")}catch(e){log("初始化失敗: "+e.message)}}
-async function submitForm(){const date=qs('#f_date').value.trim();const league=qs('#f_league').value.trim()||"TSAA";const status=qs('#f_status').value.trim()||"scheduled";const note=qs('#f_note').value.trim();if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){alert("日期格式錯誤，請用 YYYY-MM-DD，例如 2025-11-16");return}try{const r=await fetch(CONFIG.API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"addSchedule",date,league,status,note})});if(!r.ok)throw new Error("API HTTP "+r.status);const j=await r.json();if(j.result!=="ok")throw new Error(j.message||"unknown");alert("寫入成功！");location.reload()}catch(e){alert("寫入失敗："+e.message+"\n請確認 Apps Script 已部署且『任何人』可存取。")}};
+async function submitForm() {
+  const date = qs('#f_date').value.trim();
+  const league = qs('#f_league').value.trim();
+  const opponent = qs('#f_opponent').value.trim();
+  const status = qs('#f_status').value.trim();
+
+  const payload = { date, league, opponent, status };
+  log("正在送出至 Google Sheet…");
+
+  try {
+    const res = await fetch(CONFIG.API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (data.status === "success") {
+      alert("✅ 已成功寫入 Google Sheet！");
+    } else {
+      alert("⚠️ 寫入失敗：" + (data.message || "未知錯誤"));
+    }
+  } catch (err) {
+    alert("❌ 連線錯誤：" + err.message);
+  }
+}
+
 addEventListener("DOMContentLoaded",()=>{bootstrap();qs("#btnReload").addEventListener("click",()=>location.reload());const dlg=qs("#dlgForm");qs("#btnOpenForm").addEventListener("click",()=>dlg.showModal());qs("#btnClose").addEventListener("click",()=>dlg.close());qs("#btnSubmit").addEventListener("click",e=>{e.preventDefault();submitForm()});});
