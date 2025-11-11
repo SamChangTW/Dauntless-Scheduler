@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Dauntless Scheduler v2.7.1 — CloudLink 2025 Final</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0f1216"/>
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/ui.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">DS</span>
+      <div class="tit">Dauntless Scheduler <small>v2.7.1 — CloudLink 2025</small></div>
+    </div>
+    <nav class="actions">
+      <button id="btnOpenForm" class="btn">📝 建立／編輯賽程</button>
+      <button id="btnAvoid" class="btn ghost">🔎 查詢需避開（日）</button>
+      <button id="btnReload" class="btn ghost">↻ 重載</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="console">
+      <h3>Friday Console</h3>
+      <pre id="console">System boot…</pre>
+    </section>
+
+    <section class="legend">
+      <div class="pill ok">🟢 已排</div>
+      <div class="pill avoid">🔴 需避開</div>
+    </section>
+
+    <section class="stats">
+      <div class="card"><div class="lab">本季（日）</div><div class="val" id="weeksThis">—</div></div>
+      <div class="card"><div class="lab">本季已排</div><div class="val" id="countThis">—</div></div>
+      <div class="card"><div class="lab">次季已排</div><div class="val" id="countNext">—</div></div>
+      <div class="card"><div class="lab">需避開（總）</div><div class="val" id="countAvoid">—</div></div>
+    </section>
+
+    <section class="list">
+      <h3>本季（日）</h3>
+      <div id="listThis" class="slots"></div>
+    </section>
+
+    <section class="list">
+      <h3>次季（日）</h3>
+      <div id="listNext" class="slots"></div>
+    </section>
+  </main>
+
+  <dialog id="dlgForm">
+    <form method="dialog" class="form">
+      <h3>建立／編輯賽程</h3>
+      <label>日期（YYYY-MM-DD）
+        <input id="f_date" type="text" placeholder="2025-11-16" required>
+      </label>
+      <label>聯盟
+        <input id="f_league" type="text" placeholder="TSAA">
+      </label>
+      <label>狀態
+        <input id="f_status" type="text" placeholder="scheduled">
+      </label>
+      <label>備註
+        <input id="f_note" type="text" placeholder="可留空">
+      </label>
+      <menu>
+        <button id="btnSubmit" value="submit" class="btn">儲存（寫入雲端）</button>
+        <button id="btnClose" value="cancel" class="btn ghost">取消</button>
+      </menu>
+      <p class="hint">若失敗，請確認 Apps Script 已用 <b>Web App v3</b>、「任何人」、URL 為 <b>/exec</b>。</p>
+    </form>
+  </dialog>
+
+  <dialog id="dlgAvoid">
+    <div class="form">
+      <h3>需避開（日）清單（兩季）</h3>
+      <ol id="avoidList"></ol>
+      <menu><button id="btnCloseAvoid" class="btn">關閉</button></menu>
+    </div>
+  </dialog>
+
+  <footer class="foot">© 2025 Dauntless Scheduler — CloudLink Final</footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
