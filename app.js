@@ -320,7 +320,8 @@ function openHistorySheet() {
 }
 
 async function onShowAvoidList() {
-    const dates = nextSundays(12);
+    // 查詢未來「二季」的週日，原本為 12 週（一季），改為 24 週（兩季）
+    const dates = nextSundays(24);
     const avoidRows = [];
 
     for (const iso of dates) {
@@ -332,7 +333,7 @@ async function onShowAvoidList() {
 
     const w = qs('#listWrap');
     if (avoidRows.length === 0) {
-        w.innerHTML = `<div class="hint">目前未偵測到需避開之週日（未來一季）。</div>`;
+        w.innerHTML = `<div class="hint">目前未偵測到需避開之週日（未來二季）。</div>`;
         log('✓ 需避開列表完成，共 0 筆');
         return;
     }
