@@ -7,15 +7,15 @@
 :root {
   /* Palette (客製主題：海軍藍 / 鈦剛色 / 香檳金) */
   /* 主色：海軍藍（作為頁面底色） */
-  --bg: #0b1f3b;         /* Navy Blue */
-  /* 內容面：維持白底以確保可讀性 */
-  --surface: #ffffff;
-  /* 文字（用於白色面板上的深色文字） */
-  --text: #1f2328;
-  --muted: #6b7280;
+  --bg: #0b1f3b;         /* Navy Blue 深藍底 */
+  /* 內容面：改為深藍系，避免任何白底 */
+  --surface: #10284a;    /* 深藍內容面 */
+  /* 文字（深色背景上的淺色文字） */
+  --text: #e6edf6;
+  --muted: #b3bdd1;
   /* 線條外框：香檳金 */
   --border: #d6ba7a;     /* Champagne Gold */
-  --shadow: 0 10px 30px rgba(0,0,0,0.18);
+  --shadow: 0 10px 30px rgba(0,0,0,0.28);
 
   /* 按鍵：鈦剛色（作為按鈕主色） */
   --accent: #8e9297;     /* Titanium */
@@ -52,8 +52,8 @@
 html, body {
   background: var(--bg);
   /* 海軍藍底上的一般文字採用淺色，提高對比；
-     面板上的內容會在 .panel 中覆寫回深色文字 */
-  color: #e6edf6;
+     面板、表格、模態窗亦全面採用深色系 */
+  color: var(--text);
 }
 
 header h1 { font-size: var(--h1); font-weight: 700; margin: 8px 0 12px; }
@@ -81,7 +81,7 @@ header h1 small { font-size: 12px; color: #c9d2de; font-weight: 500; }
 .form input[type="date"],
 .form select {
   appearance: none;
-  background: var(--surface);
+  background: #112f5a; /* 深藍輸入底 */
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -94,8 +94,8 @@ header h1 small { font-size: 12px; color: #c9d2de; font-weight: 500; }
 
 .time-group legend { font-weight: 600; color: var(--text); }
 .slots { display: flex; flex-wrap: wrap; gap: 8px; }
-.slots .slot { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 999px; background: #fff; }
-.slots .slot:hover { box-shadow: 0 1px 0 rgba(0,0,0,0.04); }
+.slots .slot { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 999px; background: rgba(255,255,255,0.06); color: var(--text); }
+.slots .slot:hover { background: rgba(255,255,255,0.12); }
 
 /* Buttons */
 button {
@@ -128,26 +128,26 @@ button:disabled { opacity: .7; cursor: not-allowed; }
 .bad, .validate .bad { color: var(--bad); background: var(--bad-bg); border: 1px solid rgba(220,38,38,0.2); padding: 6px 8px; border-radius: 8px; }
 
 /* Lists / tables in panels */
-.list table, .validate table { width: 100%; border-collapse: collapse; }
+.list table, .validate table { width: 100%; border-collapse: collapse; color: var(--text); }
 .list thead th, .validate thead th {
-  background: #f7f7f7; border-bottom: 1px solid var(--border); text-align: left; padding: 10px 8px; font-weight: 600;
+  background: #11315e; border-bottom: 1px solid var(--border); text-align: left; padding: 10px 8px; font-weight: 600; color: var(--text);
 }
-.list tbody td, .validate tbody td { padding: 8px; border-bottom: 1px solid #f2f2f2; }
-.list tbody tr:nth-child(odd) { background: #fcfcff; }
-.list tbody tr:hover { background: #f6faff; }
+.list tbody td, .validate tbody td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.list tbody tr:nth-child(odd) { background: #0e2952; }
+.list tbody tr:hover { background: #123465; }
 
-.modal { border-radius: var(--radius-md); box-shadow: 0 24px 64px rgba(0,0,0,0.25); }
+.modal { border-radius: var(--radius-md); box-shadow: 0 24px 64px rgba(0,0,0,0.35); background: var(--surface); color: var(--text); border: 1px solid var(--border); }
 /* 將藍色漸層改為中性（鈦剛色系）以符合新主題 */
 .modal__header { background: linear-gradient(180deg, rgba(142,146,151,0.08), rgba(0,0,0,0)); border-bottom: 1px solid var(--border); }
 .modal__header h3 { font-size: 17px; }
 .modal__close { color: var(--muted); }
-.modal__close:hover { background: rgba(142,146,151,0.12); color: var(--accent-700); }
+.modal__close:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
-.modal__body table { border-collapse: collapse; width: 100%; }
-.modal__body thead th { background: #f7f7fb; border-bottom: 1px solid var(--border); }
-.modal__body tbody td { border-bottom: 1px solid #f0f0f4; }
-.modal__body tbody tr:nth-child(odd) { background: #fcfcff; }
-.modal__body tbody tr:hover { background: #f4f6fa; }
+.modal__body table { border-collapse: collapse; width: 100%; color: var(--text); }
+.modal__body thead th { background: #11315e; border-bottom: 1px solid var(--border); color: var(--text); }
+.modal__body tbody td { border-bottom: 1px solid rgba(255,255,255,0.06); }
+.modal__body tbody tr:nth-child(odd) { background: #0e2952; }
+.modal__body tbody tr:hover { background: #123465; }
 
 /* Footer */
 footer small { color: #c9d2de; }
