@@ -431,8 +431,9 @@ async function checkAvoidance(isoDate) {
     const diff = (d - today) / (1e3 * 3600 * 24);
     const tags = [];
 
-    // 只檢查未來 90 天內
-    if (diff < 0 || diff > 90) return tags;
+    // 查詢需避開時已擴大為「未來二季」（24 週 ≈ 168 天），
+    // 因此這裡的檢查上限同步擴大，避免 90 天上限造成第 13–24 週被忽略。
+    if (diff < 0 || diff > 180) return tags;
 
     // 檢查是否為國定假日
     const holidays = await getHolidayList();
