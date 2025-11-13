@@ -1,0 +1,14 @@
+@api = https://script.google.com/macros/s/REPLACE_EXEC/exec
+
+GET {{api}}?ping=1
+
+POST {{api}}
+Content-Type: application/json
+
+{
+  "action": "addSchedule",
+  "date": "2025-11-16",
+  "time": ["09:00","10:00"],
+  "venue": "海客",
+  "notes": "IDEA HTTP client test"
+}
