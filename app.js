@@ -331,9 +331,11 @@ async function onShowAvoidList() {
         }
     }
 
-    const w = qs('#listWrap');
+    // 依日期由近到遠（ISO 字串可直接字典序排序）
+    avoidRows.sort((a, b) => a[0].localeCompare(b[0]));
+
     if (avoidRows.length === 0) {
-        w.innerHTML = `<div class="hint">目前未偵測到需避開之週日（未來二季）。</div>`;
+        openModal('需避開的週日（未來二季）', `<div class="hint">目前未偵測到需避開之週日（未來二季）。</div>`);
         log('✓ 需避開列表完成，共 0 筆');
         return;
     }
@@ -354,7 +356,7 @@ async function onShowAvoidList() {
     }
 
     html.push('</tbody></table>');
-    w.innerHTML = html.join('');
+    openModal('需避開的週日（未來二季）', html.join(''));
     log('✓ 需避開列表完成，共 ' + avoidRows.length + ' 筆');
 }
 

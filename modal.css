@@ -19,6 +19,8 @@
   /* 調整：移除霧面與遮罩，讓背景維持清晰可見 */
   background: transparent; /* 若想稍微變暗，可改為 rgba(0,0,0,0.08) */
   backdrop-filter: none;
+  /* 確保 backdrop 位於內容之下，避免遮住按鈕與內容的點擊 */
+  z-index: 0;
 }
 
 .modal {
@@ -33,6 +35,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* 放在 backdrop 之上，避免被遮擋 */
+  z-index: 1;
 }
 
 .modal__header {
