@@ -1,0 +1,117 @@
+/* TSAA Scheduler UI components — Midnight Blue skin via tokens */
+@import url('./tsaa_tokens.css');
+
+/* Base background/text by theme tokens */
+html, body {
+  background-color: var(--tsaa-color-background);
+  color: var(--tsaa-color-text);
+}
+
+/* Layout */
+.tsaa-layout {
+  max-width: 1024px;
+  margin: 16px auto;
+  padding: 0 var(--tsaa-spacing);
+  display: grid;
+  gap: var(--tsaa-spacing);
+}
+
+/* Nav */
+.tsaa-nav {
+  background: linear-gradient(180deg, rgba(30,42,68,0.9), rgba(26,29,36,0.9));
+  border-bottom: 1px solid var(--tsaa-color-border);
+  padding: var(--tsaa-spacing) calc(var(--tsaa-spacing) * 1.25);
+  backdrop-filter: blur(10px);
+}
+.tsaa-nav h1 { margin: 0; font-size: 20px; font-weight: 600; }
+
+/* Card */
+.tsaa-card {
+  background: linear-gradient(145deg, rgba(36,42,51,0.98), rgba(30,42,68,0.96));
+  border: 1px solid color-mix(in oklab, var(--tsaa-color-border), transparent 55%);
+  border-radius: var(--tsaa-radius-lg);
+  padding: calc(var(--tsaa-spacing-lg));
+  box-shadow: var(--tsaa-shadow);
+}
+
+/* Buttons */
+.tsaa-btn {
+  appearance: none;
+  border: 1px solid color-mix(in oklab, var(--tsaa-color-accent), #000 35%);
+  background: linear-gradient(180deg, var(--tsaa-color-accent), color-mix(in oklab, var(--tsaa-color-accent), #000 18%));
+  color: #1a1d24;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  transition: transform .06s ease, filter .15s ease, background .2s ease;
+}
+.tsaa-btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
+.tsaa-btn:active { transform: translateY(0); }
+
+.tsaa-btn--secondary {
+  background: linear-gradient(180deg, var(--tsaa-color-primary), color-mix(in oklab, var(--tsaa-color-primary), #000 22%));
+  color: var(--tsaa-color-text);
+  border-color: color-mix(in oklab, var(--tsaa-color-primary), #000 30%);
+}
+
+.tsaa-btn--ghost {
+  background: transparent;
+  color: var(--tsaa-color-text);
+  border: 1px solid var(--tsaa-color-border);
+}
+
+.tsaa-btn--icon {
+  padding: 6px 10px;
+  line-height: 1;
+  border-radius: 10px;
+}
+
+/* Tables */
+table.tsaa-table,
+.tsaa-table table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--tsaa-color-surface);
+  color: var(--tsaa-color-text);
+  border: 1px solid var(--tsaa-color-border);
+  border-radius: var(--tsaa-radius);
+  overflow: hidden;
+  box-shadow: var(--tsaa-shadow-sm);
+}
+
+table.tsaa-table thead th,
+.tsaa-table table thead th {
+  background: color-mix(in oklab, var(--tsaa-color-secondary), #000 10%);
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--tsaa-color-border);
+}
+
+table.tsaa-table tbody td,
+.tsaa-table table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid color-mix(in oklab, var(--tsaa-color-border), transparent 50%);
+}
+
+table.tsaa-table tbody tr:hover,
+.tsaa-table table tbody tr:hover {
+  background: color-mix(in oklab, var(--tsaa-color-surface), #fff 4%);
+}
+
+/* Utilities for forms inside cards */
+.tsaa-card input,
+.tsaa-card select,
+.tsaa-card textarea {
+  background: color-mix(in oklab, var(--tsaa-color-surface), #000 6%);
+  color: var(--tsaa-color-text);
+  border: 1px solid var(--tsaa-color-border);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.tsaa-card fieldset { border: 1px dashed color-mix(in oklab, var(--tsaa-color-border), transparent 40%); border-radius: 12px; }
+.tsaa-card legend { color: color-mix(in oklab, var(--tsaa-color-text), #fff 10%); }

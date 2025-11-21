@@ -11,9 +11,14 @@
     <link rel="stylesheet" href="modal.css"/>
     <!-- UI polish theme overrides -->
     <link rel="stylesheet" href="theme.css"/>
+    <!-- TSAA Design System -->
+    <link rel="stylesheet" href="ui/tsaa_tokens.css"/>
+    <link rel="stylesheet" href="ui/scheduler.css"/>
+    <script src="ui/theme-loader.js"></script>
+    <script>window.TSAA_THEME_URL = 'ui/tsaa_theme.json';</script>
 </head>
-<body>
-<header>
+<body class="theme-scheduler">
+<header class="tsaa-nav">
     <h1>
         Dauntless Scheduler
         <small data-version-display>v2.7.4 · CloudLink Diagnose</small>
@@ -21,8 +26,8 @@
     <div id="console" class="console"></div>
 </header>
 
-<main>
-    <section class="panel">
+<main class="tsaa-layout">
+    <section class="panel tsaa-card">
         <h2>建立 / 編輯賽程</h2>
         <form id="dlgForm" class="form" autocomplete="off">
             <label>
@@ -52,32 +57,32 @@
             </label>
 
             <div class="actions">
-                <button id="btnSubmit" type="submit">💾 儲存(寫入雲端)</button>
-                <button id="btnReload" type="button">重新載入</button>
-                <button id="btnAvoidList" type="button">🔎 查詢「需避開」週日(未來二季)</button>
+                <button class="tsaa-btn" id="btnSubmit" type="submit">💾 儲存(寫入雲端)</button>
+                <button class="tsaa-btn tsaa-btn--ghost" id="btnReload" type="button">重新載入</button>
+                <button class="tsaa-btn tsaa-btn--ghost" id="btnAvoidList" type="button">🔎 查詢「需避開」週日(未來二季)</button>
             </div>
         </form>
     </section>
 
-    <section class="panel">
+    <section class="panel tsaa-card">
         <div class="toolbar">
-            <button id="btnHistory">📜 查詢歷史賽程</button>
-            <button id="btnList">📋 已安排賽程</button>
-            <button id="btnValidate">🧪 自動驗證(CSV & API)</button>
+            <button class="tsaa-btn tsaa-btn--ghost" id="btnHistory">📜 查詢歷史賽程</button>
+            <button class="tsaa-btn" id="btnList">📋 已安排賽程</button>
+            <button class="tsaa-btn tsaa-btn--secondary" id="btnValidate">🧪 自動驗證(CSV & API)</button>
         </div>
-        <div id="listWrap" class="list"></div>
+        <div id="listWrap" class="list tsaa-table"></div>
         <div id="validateWrap" class="validate"></div>
     </section>
 </main>
 
 <!-- Modal / Dialog for lists -->
 <div id="modalOverlay" class="modal-overlay hidden" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal tsaa-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal__header">
             <h3 id="modalTitle">清單</h3>
-            <button id="modalClose" class="modal__close" aria-label="關閉">×</button>
+            <button id="modalClose" class="modal__close tsaa-btn tsaa-btn--icon" aria-label="關閉">×</button>
         </div>
-        <div id="modalBody" class="modal__body"></div>
+        <div id="modalBody" class="modal__body tsaa-table"></div>
     </div>
     <div class="modal__backdrop"></div>
     

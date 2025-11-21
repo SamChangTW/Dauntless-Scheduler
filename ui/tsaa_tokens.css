@@ -1,0 +1,23 @@
+/* TSAA Design Tokens: base variable contracts for components */
+:root {
+  /* semantic slots to be populated by theme-loader */
+  --tsaa-color-primary: #2C3E57;
+  --tsaa-color-secondary: #1E2A44;
+  --tsaa-color-background: #1A1D24;
+  --tsaa-color-surface: #242A33;
+  --tsaa-color-border: #4B5563;
+  --tsaa-color-text: #F3F1ED;
+  --tsaa-color-accent: #C8B47E;
+
+  --tsaa-radius-sm: 8px;
+  --tsaa-radius: 12px;
+  --tsaa-radius-lg: 16px;
+
+  --tsaa-shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
+  --tsaa-shadow: 0 8px 24px rgba(0,0,0,0.35);
+
+  --tsaa-spacing-xs: 6px;
+  --tsaa-spacing-sm: 10px;
+  --tsaa-spacing: 14px;
+  --tsaa-spacing-lg: 20px;
+}
