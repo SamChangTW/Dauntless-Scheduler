@@ -13,8 +13,12 @@ const CONFIG = {
     SHEET_URL_SCHEDULE_CSV: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNh5UyQtAbBRyMhD2qBBToQ68wH2J2_R9Yd-n97fTHv6LgWZZp_XRUEQ_9-j7opRu4pzSRWnZ-Sxs/pub?output=csv",
 
     // Holiday CSV URL
-    // 假期資料表 (公開發布的 CSV)
+    // 假期資料表 (公開發布的 CSV - 舊版備用)
     SHEET_URL_HOLIDAY_CSV: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPWkSisyPrrYRbZirLg6Xc9v1Z7eQHeO-aBNYbopP2pfqj5PAkqhznaYnmJzQh2H1PRnL_-GeMThYT/pub?output=csv",
+
+    // Auto-Updating JSON API URL
+    // 台灣開源開源社群維護的行政院休假日曆 JSON API (新版主用)
+    JSON_HOLIDAY_API: "https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data/",
 
     // Apps Script Web App URL
     // 部署的 API 端點 (用於寫入資料)

@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function renderTimeSlots() {
     const w = qs('#slotWrap');
-    const hours = Array.from({length: 10}, (_, i) => i + 8);
+    const hours = Array.from({ length: 10 }, (_, i) => i + 8);
 
     w.innerHTML = hours.map(h => {
         const label = String(h).padStart(2, '0') + ':00';
@@ -113,6 +113,13 @@ function renderListHtml(rows) {
                 filtered.push(r);
             }
         }
+
+        // 依日期由近到遠（由上至下）排序
+        filtered.sort((a, b) => {
+            const dateA = normalizeDate(a[idx.date]) || '9999-12-31';
+            const dateB = normalizeDate(b[idx.date]) || '9999-12-31';
+            return dateA.localeCompare(dateB);
+        });
     } else {
         // 若找不到日期欄，保留原清單（不過濾），以避免整份清單消失
         for (let i = 1; i < rows.length; i++) filtered.push(rows[i]);
@@ -163,13 +170,13 @@ function openModal(title, contentHtml) {
     overlay.setAttribute('aria-hidden', 'false');
 
     const close = () => closeModal();
-    btnClose.addEventListener('click', close, {once: true});
+    btnClose.addEventListener('click', close, { once: true });
 
     // 點擊背景關閉
     const backdrop = overlay.querySelector('.modal__backdrop');
     if (backdrop) {
         const onBackdrop = (e) => { closeModal(); };
-        backdrop.addEventListener('click', onBackdrop, {once: true});
+        backdrop.addEventListener('click', onBackdrop, { once: true });
     }
 
     // Esc 關閉
@@ -269,6 +276,7 @@ async function onSubmit(ev) {
     try {
         const res = await fetch(CONFIG.API_URL, {
             method: 'POST',
+            redirect: 'follow', // Explicitly allow redirection
             // 不手動設置 Content-Type，避免瀏覽器觸發 CORS 預檢
             body: JSON.stringify(payload)
         });
@@ -279,7 +287,7 @@ async function onSubmit(ev) {
         try {
             data = JSON.parse(text);
         } catch (e) {
-            data = {raw: text};
+            data = { raw: text };
         }
 
         if (!res.ok || (data && data.ok === false) || (data && data.status === 'error')) {
@@ -389,22 +397,61 @@ async function loadSchedule() {
 }
 
 async function loadHoliday() {
-    if (!CONFIG.SHEET_URL_HOLIDAY_CSV || CONFIG.SHEET_URL_HOLIDAY_CSV.startsWith('<<<')) {
-        throw new Error('未設定 SHEET_URL_HOLIDAY_CSV');
+    const set = new Set();
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const nextYear = currentYear + 1;
+    let jsonSuccess = false;
+
+    // 1. 嘗試從 Auto-Updating JSON API 獲取 (今年 + 明年)
+    if (CONFIG.JSON_HOLIDAY_API) {
+        try {
+            const urls = [
+                `${CONFIG.JSON_HOLIDAY_API}${currentYear}.json`,
+                `${CONFIG.JSON_HOLIDAY_API}${nextYear}.json`
+            ];
+
+            for (const url of urls) {
+                const res = await fetch(url, { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    for (const item of data) {
+                        // API 格式: { "date": "20260101", "isHoliday": true }
+                        if (item.isHoliday && item.date && item.date.length === 8) {
+                            const iso = `${item.date.substring(0, 4)}-${item.date.substring(4, 6)}-${item.date.substring(6, 8)}`;
+                            set.add(iso);
+                        }
+                    }
+                    jsonSuccess = true;
+                }
+            }
+        } catch (e) {
+            console.warn("[Holiday] JSON API fetch failed, falling back to CSV...", e);
+        }
     }
 
-    // ✅ 使用 CORS 代理獲取 CSV
-    const text = await CORSProxyHelper.fetchWithProxy(CONFIG.SHEET_URL_HOLIDAY_CSV);
+    // 2. Fallback: 如果 JSON 抓取失敗或是根本沒載到資料，退回使用舊版手動更新的 CSV
+    if (!jsonSuccess) {
+        if (!CONFIG.SHEET_URL_HOLIDAY_CSV || CONFIG.SHEET_URL_HOLIDAY_CSV.startsWith('<<<')) {
+            throw new Error('未設定 SHEET_URL_HOLIDAY_CSV 且 JSON API 無法讀取');
+        }
 
-    const rows = parseCSV(text);
-    const head = rows[0].map(x => x.trim().toLowerCase());
-    const iDate = findDateIndex(head);
-    const set = new Set();
+        // ✅ 使用 CORS 代理獲取 CSV
+        const text = await CORSProxyHelper.fetchWithProxy(CONFIG.SHEET_URL_HOLIDAY_CSV);
 
-    if (iDate >= 0) {
-        for (let i = 1; i < rows.length; i++) {
-            const iso = normalizeDate(rows[i][iDate]);
-            if (iso) set.add(iso);
+        const rows = parseCSV(text);
+        const head = rows[0].map(x => x.trim().toLowerCase());
+        const iDate = findDateIndex(head);
+        const isHolidayIdx = head.indexOf('is_holiday');
+
+        if (iDate >= 0) {
+            for (let i = 1; i < rows.length; i++) {
+                const r = rows[i];
+                if (!r || r.length <= iDate) continue;
+                const iso = normalizeDate(r[iDate]);
+                const isHol = isHolidayIdx >= 0 && r.length > isHolidayIdx ? r[isHolidayIdx].trim().toUpperCase() : 'TRUE';
+                if (iso && isHol === 'TRUE') set.add(iso);
+            }
         }
     }
 
@@ -437,9 +484,22 @@ async function checkAvoidance(isoDate) {
     // 因此這裡的檢查上限同步擴大，避免 90 天上限造成第 13–24 週被忽略。
     if (diff < 0 || diff > 180) return tags;
 
-    // 檢查是否為國定假日
+    // 檢查是否為國定連假 (判斷該週日是否連接/包含在連假中)
+    // 在台灣連假通常為 3 天以上，所以如果該週五、週六、週日、週一有任一日為假日，就會把該週日視為連假
     const holidays = await getHolidayList();
-    if (holidays.has(isoDate)) {
+    const isoD = new Date(isoDate);
+    const dMinus2 = new Date(isoD); dMinus2.setDate(isoD.getDate() - 2); // 週五
+    const dMinus1 = new Date(isoD); dMinus1.setDate(isoD.getDate() - 1); // 週六
+    const dPlus1 = new Date(isoD); dPlus1.setDate(isoD.getDate() + 1); // 週一
+
+    const toIso = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+    if (
+        holidays.has(isoDate) ||
+        holidays.has(toIso(dMinus2)) ||
+        holidays.has(toIso(dMinus1)) ||
+        holidays.has(toIso(dPlus1))
+    ) {
         tags.push('HOLIDAY');
     }
 
@@ -594,29 +654,24 @@ async function autoValidate() {
         out.push(bad('SHEET_URL_SCHEDULE_CSV 讀取失敗：' + e.message));
     }
 
-    // 測試 Holiday CSV
+    // 測試 Holiday
     try {
         await loadHoliday();
-        out.push(ok('SHEET_URL_HOLIDAY_CSV 讀取成功'));
+        out.push(ok('Holiday 國定假日 API / CSV 讀取成功 (自動切換)'));
     } catch (e) {
-        out.push(bad('SHEET_URL_HOLIDAY_CSV 讀取失敗：' + e.message));
+        out.push(bad('Holiday 讀取失敗（JSON、CSV 均失效）：' + e.message));
     }
 
     // 測試 API
     if (!CONFIG.API_URL || CONFIG.API_URL.startsWith('<<<')) {
         out.push(bad('API_URL 未設定'));
     } else {
-        // OPTIONS 測試
-        try {
-            await fetch(CONFIG.API_URL, {method: 'OPTIONS'});
-            out.push(ok('API_URL 支援 CORS/OPTIONS'));
-        } catch (e) {
-            out.push(bad('API_URL OPTIONS 檢查失敗（可能 CORS 未開）'));
-        }
+        // Google Apps Script 天生不支援 OPTIONS 方法
+        out.push(ok('API_URL 已設定 (自動略過 OPTIONS 檢查)'));
 
         // GET 測試
         try {
-            const g = await fetch(CONFIG.API_URL + '?ping=1', {method: 'GET'});
+            const g = await fetch(CONFIG.API_URL + '?ping=1', { method: 'GET' });
             out.push(g.ok ? ok('API_URL GET 正常') : bad('API_URL GET 狀態碼 ' + g.status));
         } catch (e) {
             out.push(bad('API_URL GET 失敗：' + e.message));
@@ -626,8 +681,9 @@ async function autoValidate() {
         try {
             const p = await fetch(CONFIG.API_URL, {
                 method: 'POST',
+                redirect: 'follow',
                 // 不手動設置 Content-Type，避免瀏覽器觸發 CORS 預檢
-                body: JSON.stringify({action: 'ping'})
+                body: JSON.stringify({ action: 'ping' })
             });
             out.push(p.ok ? ok('API_URL POST 正常') : bad('API_URL POST 狀態碼 ' + p.status));
         } catch (e) {

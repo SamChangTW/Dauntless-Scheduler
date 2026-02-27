@@ -7,9 +7,9 @@
 const CORSProxyHelper = {
     // CORS 代理列表 (按优先级排序)
     proxies: [
+        '', // 首先尝试直接访问 (Google Sheets CSV 支持 CORS)
         'https://corsproxy.io/?',
-        'https://api.allorigins.win/raw?url=',
-        '' // 最后尝试直接访问
+        'https://api.allorigins.win/raw?url='
     ],
 
     async fetchWithProxy(url, retries = 2) {
