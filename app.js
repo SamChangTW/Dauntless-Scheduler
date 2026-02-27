@@ -485,7 +485,9 @@ async function checkAvoidance(isoDate) {
     if (diff < 0 || diff > 180) return tags;
 
     // 檢查是否為國定連假 (判斷該週日是否連接/包含在連假中)
-    // 在台灣連假通常為 3 天以上，所以如果該週五、週六、週日、週一有任一日為假日，就會把該週日視為連假
+    // 連續假期的避開定義：包含六日且有連續三天以上
+    // 由於 holidays 集合包含所有假日（包含一般週休二日），
+    // 只要確保週六、週日皆為假日，且週五或週一也是假日，即代表是三天以上的連假。
     const holidays = await getHolidayList();
     const isoD = new Date(isoDate);
     const dMinus2 = new Date(isoD); dMinus2.setDate(isoD.getDate() - 2); // 週五
@@ -494,12 +496,12 @@ async function checkAvoidance(isoDate) {
 
     const toIso = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-    if (
-        holidays.has(isoDate) ||
-        holidays.has(toIso(dMinus2)) ||
-        holidays.has(toIso(dMinus1)) ||
-        holidays.has(toIso(dPlus1))
-    ) {
+    const isSundayHoliday = holidays.has(isoDate);
+    const isSaturdayHoliday = holidays.has(toIso(dMinus1));
+    const isFridayHoliday = holidays.has(toIso(dMinus2));
+    const isMondayHoliday = holidays.has(toIso(dPlus1));
+
+    if (isSundayHoliday && isSaturdayHoliday && (isFridayHoliday || isMondayHoliday)) {
         tags.push('HOLIDAY');
     }
 
