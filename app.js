@@ -14,6 +14,16 @@ const log = m => {
     qs('#console').textContent += (m + '\n');
 };
 
+/**
+ * 統一的日期物件 → ISO 字串轉換工具（YYYY-MM-DD）。
+ * 取代原先分散於 checkAvoidance / nextSundays / renderListHtml 的重複邏輯。
+ */
+const dateToISO = d =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+/** 取得今日 ISO 字串（本機時區） */
+const getTodayISO = () => dateToISO(new Date());
+
 // ============================================
 // Global State
 // ============================================
@@ -27,6 +37,9 @@ let cacheHoliday = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     log('v' + CONFIG.VERSION + ' boot…');
+    // 從 CONFIG.VERSION 動態更新所有版本號顯示元素（#11）
+    document.querySelectorAll('[data-version-display]')
+        .forEach(el => { el.textContent = 'v' + CONFIG.VERSION; });
     renderTimeSlots();
     bindForm();
     preloadData();
@@ -49,48 +62,16 @@ function renderTimeSlots() {
     }).join('');
 }
 
-function renderList(rows) {
-    const head = rows[0].map(x => x.trim().toLowerCase());
-    const idx = {
-        date: head.indexOf('date'),
-        time: head.indexOf('time'),
-        venue: (head.indexOf('venue') > -1 ? head.indexOf('venue') : head.indexOf('league')),
-        notes: head.indexOf('notes')
-    };
-
-    const html = [
-        `<table>
-            <thead>
-                <tr>
-                    <th>日期</th>
-                    <th>時間</th>
-                    <th>場地</th>
-                    <th>備註</th>
-                </tr>
-            </thead>
-            <tbody>`
-    ];
-
-    for (let i = 1; i < rows.length; i++) {
-        const r = rows[i];
-        html.push(`<tr>
-            <td>${(r[idx.date] || '')}</td>
-            <td>${(r[idx.time] || '')}</td>
-            <td>${(r[idx.venue] || '')}</td>
-            <td>${(r[idx.notes] || '')}</td>
-        </tr>`);
-    }
-
-    html.push('</tbody></table>');
-    qs('#listWrap').innerHTML = html.join('');
-}
-
-// 產生賽程列表的 HTML（給 Modal 使用）
-function renderListHtml(rows) {
+/**
+ * 產生賽程表格 HTML 字串（#4 合併 renderList 與 renderListHtml）。
+ * @param {Array}   rows         - CSV 解析後的二維陣列（rows[0] 為標頭）
+ * @param {boolean} filterFuture - true：僅顯示今日(含)之後的賽程
+ * @returns {string} HTML 字串
+ */
+function renderListHtml(rows, filterFuture = true) {
     if (!rows || rows.length === 0) return '<p>沒有資料</p>';
 
     const head = rows[0].map(x => x.trim().toLowerCase());
-    // 更穩健：使用 findDateIndex 來取得日期欄位
     let iDate = findDateIndex(head);
     const idx = {
         date: iDate >= 0 ? iDate : head.indexOf('date'),
@@ -99,30 +80,21 @@ function renderListHtml(rows) {
         notes: head.indexOf('notes')
     };
 
-    // 計算「今天」(以使用者本機時區) 的 YYYY-MM-DD 字串
-    const now = new Date();
-    const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
-    // 過濾：僅顯示「今天(含)之後」的賽程
-    const filtered = [];
-    if (idx.date >= 0) {
+    let data = [];
+    if (filterFuture && idx.date >= 0) {
+        const todayISO = getTodayISO();
         for (let i = 1; i < rows.length; i++) {
-            const r = rows[i];
-            const iso = normalizeDate(r[idx.date]);
-            if (iso && iso >= todayISO) {
-                filtered.push(r);
-            }
+            const iso = normalizeDate(rows[i][idx.date]);
+            if (iso && iso >= todayISO) data.push(rows[i]);
         }
-
-        // 依日期由近到遠（由上至下）排序
-        filtered.sort((a, b) => {
-            const dateA = normalizeDate(a[idx.date]) || '9999-12-31';
-            const dateB = normalizeDate(b[idx.date]) || '9999-12-31';
-            return dateA.localeCompare(dateB);
+        // 依日期由近到遠排序
+        data.sort((a, b) => {
+            const da = normalizeDate(a[idx.date]) || '9999-12-31';
+            const db = normalizeDate(b[idx.date]) || '9999-12-31';
+            return da.localeCompare(db);
         });
     } else {
-        // 若找不到日期欄，保留原清單（不過濾），以避免整份清單消失
-        for (let i = 1; i < rows.length; i++) filtered.push(rows[i]);
+        for (let i = 1; i < rows.length; i++) data.push(rows[i]);
     }
 
     const html = [
@@ -138,12 +110,12 @@ function renderListHtml(rows) {
             <tbody>`
     ];
 
-    for (const r of filtered) {
+    for (const r of data) {
         html.push(`<tr>
-            <td>${(idx.date >= 0 ? (r[idx.date] || '') : '')}</td>
-            <td>${(r[idx.time] || '')}</td>
-            <td>${(r[idx.venue] || '')}</td>
-            <td>${(r[idx.notes] || '')}</td>
+            <td>${idx.date >= 0 ? (r[idx.date] || '') : ''}</td>
+            <td>${r[idx.time] || ''}</td>
+            <td>${r[idx.venue] || ''}</td>
+            <td>${r[idx.notes] || ''}</td>
         </tr>`);
     }
 
@@ -151,8 +123,14 @@ function renderListHtml(rows) {
     return html.join('');
 }
 
+/** 直接寫入 #listWrap（向下相容原 renderList 呼叫用途） */
+function renderList(rows) {
+    qs('#listWrap').innerHTML = renderListHtml(rows, false);
+}
+
 // Modal 控制
 let __modalEscHandler = null;
+
 function openModal(title, contentHtml) {
     const overlay = qs('#modalOverlay');
     const body = qs('#modalBody');
@@ -169,21 +147,24 @@ function openModal(title, contentHtml) {
     overlay.classList.remove('hidden');
     overlay.setAttribute('aria-hidden', 'false');
 
-    const close = () => closeModal();
-    btnClose.addEventListener('click', close, { once: true });
+    btnClose.addEventListener('click', () => closeModal(), { once: true });
 
-    // 點擊背景關閉
-    const backdrop = overlay.querySelector('.modal__backdrop');
-    if (backdrop) {
-        const onBackdrop = (e) => { closeModal(); };
-        backdrop.addEventListener('click', onBackdrop, { once: true });
-    }
+    // #6 改用事件委派：在 overlay 層統一監聽點擊，判斷是否點到背景
+    // 避免每次 openModal 對 backdrop DOM 節點疊加 listener。
+    overlay.addEventListener('click', _onOverlayClick, { once: true });
 
     // Esc 關閉
-    __modalEscHandler = (e) => {
+    __modalEscHandler = e => {
         if (e.key === 'Escape') closeModal();
     };
     window.addEventListener('keydown', __modalEscHandler);
+}
+
+function _onOverlayClick(e) {
+    // 只有點到 overlay 本身或 backdrop 才關閉，點到 modal 內容不關閉
+    if (e.target === qs('#modalOverlay') || e.target.classList.contains('modal__backdrop')) {
+        closeModal();
+    }
 }
 
 function closeModal() {
@@ -191,6 +172,8 @@ function closeModal() {
     if (!overlay) return;
     overlay.classList.add('hidden');
     overlay.setAttribute('aria-hidden', 'true');
+    // 移除委派的 overlay click listener（若尚未觸發）
+    overlay.removeEventListener('click', _onOverlayClick);
     // 清理內容，避免殘留事件
     const body = qs('#modalBody');
     if (body) body.innerHTML = '';
@@ -265,6 +248,7 @@ async function onSubmit(ev) {
 
     const payload = {
         action: 'addSchedule',
+        token: CONFIG.API_TOKEN,   // #3 加入 Token 驗證
         date,
         venue,
         time: slots,
@@ -307,7 +291,7 @@ async function onSubmit(ev) {
 
 async function onShowList() {
     const rows = await loadSchedule();
-    const html = renderListHtml(rows);
+    const html = renderListHtml(rows, true);
     openModal('📋 已安排賽程', html);
 }
 
@@ -328,18 +312,17 @@ function openHistorySheet() {
 }
 
 async function onShowAvoidList() {
-    // 查詢未來「二季」的週日，原本為 12 週（一季），改為 24 週（兩季）
+    // 查詢未來「二季」的週日（24 週）
     const dates = nextSundays(24);
-    const avoidRows = [];
 
-    for (const iso of dates) {
-        const tags = await checkAvoidance(iso);
-        if (tags.length) {
-            avoidRows.push([iso, tags.map(mapTagToText).join('、')]);
-        }
-    }
+    // #2 改用 Promise.all 並聯執行，大幅提升速度（原本 24 次 sequential await）
+    const results = await Promise.all(dates.map(iso => checkAvoidance(iso)));
 
-    // 依日期由近到遠（ISO 字串可直接字典序排序）
+    const avoidRows = dates
+        .map((iso, i) => results[i].length ? [iso, results[i].map(mapTagToText).join('、')] : null)
+        .filter(Boolean);
+
+    // 依日期由近到遠排序（ISO 字串可直接字典序排序）
     avoidRows.sort((a, b) => a[0].localeCompare(b[0]));
 
     if (avoidRows.length === 0) {
@@ -426,7 +409,7 @@ async function loadHoliday() {
                 }
             }
         } catch (e) {
-            console.warn("[Holiday] JSON API fetch failed, falling back to CSV...", e);
+            console.warn('[Holiday] JSON API 取得失敗，退回 CSV…', e);
         }
     }
 
@@ -480,26 +463,21 @@ async function checkAvoidance(isoDate) {
     const diff = (d - today) / (1e3 * 3600 * 24);
     const tags = [];
 
-    // 查詢需避開時已擴大為「未來二季」（24 週 ≈ 168 天），
-    // 因此這裡的檢查上限同步擴大，避免 90 天上限造成第 13–24 週被忽略。
+    // 查詢範圍上限同步為「未來二季」約 168 天
     if (diff < 0 || diff > 180) return tags;
 
-    // 檢查是否為國定連假 (判斷該週日是否連接/包含在連假中)
-    // 連續假期的避開定義：包含六日且有連續三天以上
-    // 由於 holidays 集合包含所有假日（包含一般週休二日），
-    // 只要確保週六、週日皆為假日，且週五或週一也是假日，即代表是三天以上的連假。
+    // 檢查是否為國定連假
     const holidays = await getHolidayList();
     const isoD = new Date(isoDate);
     const dMinus2 = new Date(isoD); dMinus2.setDate(isoD.getDate() - 2); // 週五
     const dMinus1 = new Date(isoD); dMinus1.setDate(isoD.getDate() - 1); // 週六
-    const dPlus1 = new Date(isoD); dPlus1.setDate(isoD.getDate() + 1); // 週一
+    const dPlus1 = new Date(isoD); dPlus1.setDate(isoD.getDate() + 1);  // 週一
 
-    const toIso = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-
+    // #5 使用統一工具函式 dateToISO（取代 inline lambda `toIso`）
     const isSundayHoliday = holidays.has(isoDate);
-    const isSaturdayHoliday = holidays.has(toIso(dMinus1));
-    const isFridayHoliday = holidays.has(toIso(dMinus2));
-    const isMondayHoliday = holidays.has(toIso(dPlus1));
+    const isSaturdayHoliday = holidays.has(dateToISO(dMinus1));
+    const isFridayHoliday = holidays.has(dateToISO(dMinus2));
+    const isMondayHoliday = holidays.has(dateToISO(dPlus1));
 
     if (isSundayHoliday && isSaturdayHoliday && (isFridayHoliday || isMondayHoliday)) {
         tags.push('HOLIDAY');
@@ -542,14 +520,10 @@ function findDateIndex(head) {
 
 function mapTagToText(tag) {
     switch (tag) {
-        case 'NOT_SUNDAY':
-            return '非週日，不可選';
-        case 'HOLIDAY':
-            return '國定連假（建議避開）';
-        case 'SCHEDULED':
-            return '該日期已安排賽程（任一聯盟）';
-        default:
-            return tag;
+        case 'NOT_SUNDAY': return '非週日，不可選';
+        case 'HOLIDAY': return '國定連假（建議避開）';
+        case 'SCHEDULED': return '該日期已安排賽程（任一聯盟）';
+        default: return tag;
     }
 }
 
@@ -607,20 +581,15 @@ function normalizeDate(s) {
     if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
 
     const d = new Date(v);
-    if (!isNaN(d)) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${dd}`;
-    }
+    if (!isNaN(d)) return dateToISO(d); // #5 統一使用 dateToISO
 
     return '';
 }
 
 function nextSundays(weeks = 12) {
     const res = [];
-    const today = new Date();
-    let d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    let d = new Date();
+    d = new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
     // 找到下一個星期日
     while (d.getDay() !== 0) {
@@ -629,10 +598,7 @@ function nextSundays(weeks = 12) {
 
     // 生成接下來 N 週的星期日
     for (let i = 0; i < weeks; i++) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        res.push(`${y}-${m}-${dd}`);
+        res.push(dateToISO(d)); // #5 統一使用 dateToISO
         d.setDate(d.getDate() + 7);
     }
 
@@ -671,6 +637,13 @@ async function autoValidate() {
         // Google Apps Script 天生不支援 OPTIONS 方法
         out.push(ok('API_URL 已設定 (自動略過 OPTIONS 檢查)'));
 
+        // Token 設定檢查
+        if (!CONFIG.API_TOKEN || CONFIG.API_TOKEN.startsWith('<<<')) {
+            out.push(bad('API_TOKEN 未設定（請在 config.js 設定 API_TOKEN）'));
+        } else {
+            out.push(ok('API_TOKEN 已設定'));
+        }
+
         // GET 測試
         try {
             const g = await fetch(CONFIG.API_URL + '?ping=1', { method: 'GET' });
@@ -684,8 +657,7 @@ async function autoValidate() {
             const p = await fetch(CONFIG.API_URL, {
                 method: 'POST',
                 redirect: 'follow',
-                // 不手動設置 Content-Type，避免瀏覽器觸發 CORS 預檢
-                body: JSON.stringify({ action: 'ping' })
+                body: JSON.stringify({ action: 'ping', token: CONFIG.API_TOKEN })
             });
             out.push(p.ok ? ok('API_URL POST 正常') : bad('API_URL POST 狀態碼 ' + p.status));
         } catch (e) {

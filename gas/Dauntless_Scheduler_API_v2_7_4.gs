@@ -1,14 +1,16 @@
 
 /**
- * Dauntless Scheduler API v2.8.0
- * Compatible with Dauntless_Scheduler_v2.8.0_Standalone_AutoValidate
+ * Dauntless Scheduler API v2.7.4
+ * Compatible with Dauntless_Scheduler_v2.7.4_CloudLink_Diagnose
  * Designed by Sam × C⁵
+ *
+ * 版本號已對齊前端 v2.7.4（#7）
  */
 
 /* ===== Configuration ===== */
-const SHEET_ID = "1PrnfYCTPeLHeQONEniY6p-EgQEfRfYUax4GjfPHo6Qk";
+const SHEET_ID   = "1PrnfYCTPeLHeQONEniY6p-EgQEfRfYUax4GjfPHo6Qk";
 const SHEET_NAME = "Schedule";
-const API_VERSION = "2.8.0";
+const API_VERSION = "2.7.4";
 
 /* ===== Main Routing ===== */
 function doGet(e) {
@@ -26,6 +28,14 @@ function doPost(e) {
     data = JSON.parse(body);
   } catch (err) {
     return createJsonResponse({ ok: false, error: "Invalid JSON" });
+  }
+
+  // #3 簡易 Token 驗證
+  // 請至 GAS 編輯器 → 專案設定 → 指令碼屬性，新增 key: API_TOKEN, value: 你的密鑰
+  // 前端 config.js 的 API_TOKEN 需與此一致
+  const expectedToken = PropertiesService.getScriptProperties().getProperty("API_TOKEN");
+  if (data.action !== "ping" && expectedToken && data.token !== expectedToken) {
+    return createJsonResponse({ ok: false, error: "Unauthorized", message: "Token 驗證失敗" });
   }
 
   if (data.action === "addSchedule") {
