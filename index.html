@@ -4,16 +4,16 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="app-version" content="2.7.4" data-version="2.7.4" />
+    <meta name="app-version" content="2.7.5" data-version="2.7.5" />
     <title>Dauntless Scheduler — CloudLink Diagnose</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="modal.css" />
+    <link rel="stylesheet" href="style.css?v=5" />
+    <link rel="stylesheet" href="modal.css?v=5" />
     <!-- UI polish theme overrides -->
-    <link rel="stylesheet" href="theme.css" />
-    <!-- TSAA Design System -->
-    <link rel="stylesheet" href="ui/tsaa_tokens.css" />
-    <link rel="stylesheet" href="ui/scheduler.css" />
+    <link rel="stylesheet" href="theme.css?v=5" />
+    <!-- TSAA Design System (Dauntless Command · Obsidian Dark) -->
+    <link rel="stylesheet" href="ui/tsaa_tokens.css?v=5" />
+    <link rel="stylesheet" href="ui/scheduler.css?v=5" />
     <script src="ui/theme-loader.js"></script>
     <script>window.TSAA_THEME_URL = 'ui/tsaa_theme.json';</script>
 </head>
@@ -93,9 +93,9 @@
         <small>© 2025 Dauntless Scheduler · Designed by Sam × C⁵</small>
     </footer>
 
-    <script src="config.js?v=4"></script>
-    <script src="cors-proxy-helper.js?v=4"></script>
-    <script src="app.js?v=4"></script>
+    <script src="config.js?v=5"></script>
+    <script src="cors-proxy-helper.js?v=5"></script>
+    <script src="app.js?v=5"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js');

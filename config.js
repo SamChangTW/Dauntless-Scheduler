@@ -6,7 +6,7 @@
 
 const CONFIG = {
     // 版本號
-    VERSION: "2.7.4-CloudLinkDiagnose",
+    VERSION: "2.7.5-CloudLinkDiagnose",
 
     // Schedule CSV URL
     // 賽程資料表 (公開發布的 CSV)

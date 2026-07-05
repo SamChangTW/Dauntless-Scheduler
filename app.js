@@ -14,6 +14,21 @@ const log = m => {
     qs('#console').textContent += (m + '\n');
 };
 
+/** HTML 轉義：CSV／API 來源字串進入 innerHTML 前必經此函式（XSS 防護） */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[c]));
+
+/**
+ * 以本機時區解析 YYYY-MM-DD。
+ * new Date('YYYY-MM-DD') 會以 UTC 解析，於非 UTC 時區產生日界偏移。
+ */
+function parseISOLocal(iso) {
+    const parts = ('' + iso).split('-').map(Number);
+    if (parts.length !== 3 || parts.some(isNaN)) return new Date(NaN);
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+}
+
 /**
  * 統一的日期物件 → ISO 字串轉換工具（YYYY-MM-DD）。
  * 取代原先分散於 checkAvoidance / nextSundays / renderListHtml 的重複邏輯。
@@ -112,10 +127,10 @@ function renderListHtml(rows, filterFuture = true) {
 
     for (const r of data) {
         html.push(`<tr>
-            <td>${idx.date >= 0 ? (r[idx.date] || '') : ''}</td>
-            <td>${r[idx.time] || ''}</td>
-            <td>${r[idx.venue] || ''}</td>
-            <td>${r[idx.notes] || ''}</td>
+            <td>${esc(idx.date >= 0 ? (r[idx.date] || '') : '')}</td>
+            <td>${esc(r[idx.time] || '')}</td>
+            <td>${esc(r[idx.venue] || '')}</td>
+            <td>${esc(r[idx.notes] || '')}</td>
         </tr>`);
     }
 
@@ -153,7 +168,10 @@ function openModal(title, contentHtml) {
     // 避免每次 openModal 對 backdrop DOM 節點疊加 listener。
     overlay.addEventListener('click', _onOverlayClick, { once: true });
 
-    // Esc 關閉
+    // Esc 關閉（先清掉前一次未釋放的 handler，避免連開多個 modal 時疊加）
+    if (__modalEscHandler) {
+        window.removeEventListener('keydown', __modalEscHandler);
+    }
     __modalEscHandler = e => {
         if (e.key === 'Escape') closeModal();
     };
@@ -200,12 +218,13 @@ function showAvoidHint(tags) {
 function bindForm() {
     qs('#f_date').addEventListener('change', async e => {
         const v = e.target.value;
-        const d = new Date(v);
+        // 以本機時區解析，避免 UTC 解析在非 UTC 時區造成週日誤判
+        const d = parseISOLocal(v);
 
         if (isNaN(d)) return;
 
         // 檢查是否為星期日
-        if (d.getUTCDay() !== 0 && d.getDay() !== 0) {
+        if (d.getDay() !== 0) {
             showAvoidHint(['NOT_SUNDAY']);
             alert('僅可選擇星期日。');
             e.target.value = '';
@@ -458,8 +477,10 @@ async function getHolidayList() {
 // ============================================
 
 async function checkAvoidance(isoDate) {
-    const d = new Date(isoDate);
+    // 全程以本機時區的「日」為單位比較，避免 UTC 偏移
+    const d = parseISOLocal(isoDate);
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const diff = (d - today) / (1e3 * 3600 * 24);
     const tags = [];
 
@@ -468,7 +489,7 @@ async function checkAvoidance(isoDate) {
 
     // 檢查是否為國定連假
     const holidays = await getHolidayList();
-    const isoD = new Date(isoDate);
+    const isoD = parseISOLocal(isoDate);
     const dMinus2 = new Date(isoD); dMinus2.setDate(isoD.getDate() - 2); // 週五
     const dMinus1 = new Date(isoD); dMinus1.setDate(isoD.getDate() - 1); // 週六
     const dPlus1 = new Date(isoD); dPlus1.setDate(isoD.getDate() + 1);  // 週一
@@ -611,8 +632,8 @@ function nextSundays(weeks = 12) {
 
 async function autoValidate() {
     const out = [];
-    const ok = s => `<div class="ok">✅ ${s}</div>`;
-    const bad = s => `<div class="bad">❌ ${s}</div>`;
+    const ok = s => `<div class="ok">✅ ${esc(s)}</div>`;
+    const bad = s => `<div class="bad">❌ ${esc(s)}</div>`;
 
     // 測試 Schedule CSV
     try {

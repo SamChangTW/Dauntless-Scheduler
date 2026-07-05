@@ -3,7 +3,9 @@
  * 提供靜態資源預快取，支援 PWA 離線使用（#8）
  */
 
-const CACHE_NAME = 'ds-v2.7.4';
+// ⚠ 每次修改任何靜態資源（CSS/JS/JSON）都必須同步遞增此版本，
+//    否則已安裝的 PWA 會持續讀取舊快取
+const CACHE_NAME = 'ds-v2.7.5';
 
 // 需預快取的靜態資源清單
 const STATIC_ASSETS = [

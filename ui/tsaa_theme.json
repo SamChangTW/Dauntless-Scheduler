@@ -1,20 +1,20 @@
 {
   "scheduler_midnight_blue": {
-    "color-primary": "#2C3E57",
-    "color-secondary": "#1E2A44",
-    "color-background": "#1A1D24",
-    "color-surface": "#242A33",
-    "color-border": "#4B5563",
-    "color-text": "#F3F1ED",
-    "color-accent": "#C8B47E"
+    "color-primary": "#5B30A3",
+    "color-secondary": "#2E214A",
+    "color-background": "#0E0E11",
+    "color-surface": "#18181C",
+    "color-border": "#2B2B32",
+    "color-text": "#F4F4F5",
+    "color-accent": "#8B5CF6"
   },
   "scheduler": {
-    "color-primary": "#2C3E57",
-    "color-secondary": "#1E2A44",
-    "color-background": "#1A1D24",
-    "color-surface": "#242A33",
-    "color-border": "#4B5563",
-    "color-text": "#F3F1ED",
-    "color-accent": "#C8B47E"
+    "color-primary": "#5B30A3",
+    "color-secondary": "#2E214A",
+    "color-background": "#0E0E11",
+    "color-surface": "#18181C",
+    "color-border": "#2B2B32",
+    "color-text": "#F4F4F5",
+    "color-accent": "#8B5CF6"
   }
 }

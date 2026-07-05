@@ -1,20 +1,22 @@
-/* TSAA Design Tokens: base variable contracts for components */
+/* TSAA Design Tokens: base variable contracts for components
+   Palette: Dauntless Command (Obsidian Dark) — 與 DESIGN.md 同步 */
 :root {
   /* semantic slots to be populated by theme-loader */
-  --tsaa-color-primary: #2C3E57;
-  --tsaa-color-secondary: #1E2A44;
-  --tsaa-color-background: #1A1D24;
-  --tsaa-color-surface: #242A33;
-  --tsaa-color-border: #4B5563;
-  --tsaa-color-text: #F3F1ED;
-  --tsaa-color-accent: #C8B47E;
+  --tsaa-color-primary: #5B30A3;
+  --tsaa-color-secondary: #2E214A;
+  --tsaa-color-background: #0E0E11;
+  --tsaa-color-surface: #18181C;
+  --tsaa-color-border: #2B2B32;
+  --tsaa-color-text: #F4F4F5;
+  --tsaa-color-accent: #8B5CF6;
 
   --tsaa-radius-sm: 8px;
   --tsaa-radius: 12px;
   --tsaa-radius-lg: 16px;
 
-  --tsaa-shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
-  --tsaa-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  /* Flat-by-default：陰影模糊 ≤ 4px（DESIGN.md 零陰影原則） */
+  --tsaa-shadow-sm: 0 1px 3px rgba(0,0,0,0.5);
+  --tsaa-shadow: 0 2px 4px rgba(0,0,0,0.5);
 
   --tsaa-spacing-xs: 6px;
   --tsaa-spacing-sm: 10px;
