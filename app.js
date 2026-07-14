@@ -45,6 +45,7 @@ const getTodayISO = () => dateToISO(new Date());
 
 let cacheSchedule = null;
 let cacheHoliday = null;
+let pendingDeletes = new Map(); // 追蹤正在倒數刪除的賽程
 
 // ============================================
 // Initialization
@@ -112,6 +113,7 @@ function renderListHtml(rows, filterFuture = true) {
         for (let i = 1; i < rows.length; i++) data.push(rows[i]);
     }
 
+    const showAction = filterFuture; // 只有在未來賽程(Modal內)才顯示刪除按鈕
     const html = [
         `<table>
             <thead>
@@ -120,17 +122,30 @@ function renderListHtml(rows, filterFuture = true) {
                     <th>時間</th>
                     <th>場地</th>
                     <th>備註</th>
+                    ${showAction ? '<th>操作</th>' : ''}
                 </tr>
             </thead>
             <tbody>`
     ];
 
     for (const r of data) {
-        html.push(`<tr>
-            <td>${esc(idx.date >= 0 ? (r[idx.date] || '') : '')}</td>
-            <td>${esc(r[idx.time] || '')}</td>
-            <td>${esc(r[idx.venue] || '')}</td>
-            <td>${esc(r[idx.notes] || '')}</td>
+        const rDate = idx.date >= 0 ? (r[idx.date] || '') : '';
+        const rTime = r[idx.time] || '';
+        const rVenue = r[idx.venue] || '';
+        const rNotes = r[idx.notes] || '';
+
+        const trAttr = showAction 
+            ? ` data-date="${esc(rDate)}" data-time="${esc(rTime)}" data-venue="${esc(rVenue)}" data-notes="${esc(rNotes)}"`
+            : '';
+
+        html.push(`<tr${trAttr}>
+            <td>${esc(rDate)}</td>
+            <td>${esc(rTime)}</td>
+            <td>${esc(rVenue)}</td>
+            <td>${esc(rNotes)}</td>
+            ${showAction ? `<td>
+                <button class="tsaa-btn btn-delete" style="padding: 4px 8px; font-size: 12px; background: var(--bad); border-color: var(--bad);" data-action="delete">🗑 刪除</button>
+            </td>` : ''}
         </tr>`);
     }
 
@@ -186,6 +201,9 @@ function _onOverlayClick(e) {
 }
 
 function closeModal() {
+    // 關閉 Modal 前強制 Flush 所有 pending 刪除
+    flushPendingDeletes(true);
+
     const overlay = qs('#modalOverlay');
     if (!overlay) return;
     overlay.classList.add('hidden');
@@ -235,13 +253,31 @@ function bindForm() {
         showAvoidHint(notes);
     });
 
-    qs('#btnReload').addEventListener('click', () => location.reload());
+    qs('#btnReload').addEventListener('click', () => {
+        flushPendingDeletes(true);
+        location.reload();
+    });
     const btnHistory = qs('#btnHistory');
     if (btnHistory) btnHistory.addEventListener('click', openHistorySheet);
     qs('#btnList').addEventListener('click', onShowList);
     qs('#btnAvoidList').addEventListener('click', onShowAvoidList);
     qs('#btnValidate').addEventListener('click', autoValidate);
     qs('#dlgForm').addEventListener('submit', onSubmit);
+
+    // 事件委派：監聽 modalBody 上的點擊以處理刪除與復原
+    const modalBody = qs('#modalBody');
+    if (modalBody) {
+        modalBody.addEventListener('click', onModalBodyClick);
+    }
+
+    // 視窗離開前防丟失警告
+    window.addEventListener('beforeunload', e => {
+        if (pendingDeletes.size > 0) {
+            e.preventDefault();
+            e.returnValue = '賽程刪除尚未同步至雲端，確定要離開嗎？';
+            return e.returnValue;
+        }
+    });
 }
 
 function collectSelectedSlots() {
@@ -309,9 +345,189 @@ async function onSubmit(ev) {
 }
 
 async function onShowList() {
+    // 開啟或重新載入清單前，先 Flush 當前 pending 的刪除以保持狀態一致
+    flushPendingDeletes(true);
+
     const rows = await loadSchedule();
     const html = renderListHtml(rows, true);
     openModal('📋 已安排賽程', html);
+}
+
+// ============================================
+// Undo Delete 狀態機與 API 刪除實作
+// ============================================
+
+function onModalBodyClick(e) {
+    const target = e.target;
+    if (!target) return;
+
+    if (target.classList.contains('btn-delete') || target.closest('.btn-delete')) {
+        const btn = target.classList.contains('btn-delete') ? target : target.closest('.btn-delete');
+        const tr = btn.closest('tr');
+        if (!tr) return;
+
+        const date = tr.dataset.date;
+        const time = tr.dataset.time;
+        const venue = tr.dataset.venue;
+        
+        startPendingDelete(tr, date, time, venue);
+    } 
+    else if (target.classList.contains('btn-undo') || target.closest('.btn-undo')) {
+        const btn = target.classList.contains('btn-undo') ? target : target.closest('.btn-undo');
+        const deleteKey = btn.dataset.key;
+        undoPendingDelete(deleteKey);
+    }
+}
+
+function startPendingDelete(tr, date, time, venue) {
+    const deleteKey = `${date}|${venue}|${time}`;
+    
+    // 若已在刪除狀態則跳過
+    if (pendingDeletes.has(deleteKey)) return;
+
+    const originalHtml = tr.innerHTML;
+    let secondsLeft = 5;
+
+    // 將整行暫時設為刪除提示 (含倒數計時與復原按鈕)
+    tr.innerHTML = `
+        <td colspan="5" style="background: var(--bad-bg); color: var(--bad); padding: 8px 12px; border-bottom: 1px solid var(--border);">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;">
+                <span>⚠ 賽程已刪除，將於 <strong class="countdown-sec">${secondsLeft}</strong> 秒後寫入雲端...</span>
+                <button class="tsaa-btn btn-undo" style="padding: 4px 10px; font-size: 12px; background: transparent; border: 1px solid var(--bad); color: var(--bad);" data-key="${deleteKey}">↩ 復原</button>
+            </div>
+        </td>
+    `;
+
+    // 每秒更新倒數 UI
+    const intervalId = setInterval(() => {
+        secondsLeft--;
+        const secEl = tr.querySelector('.countdown-sec');
+        if (secEl) {
+            secEl.textContent = secondsLeft;
+        }
+        if (secondsLeft <= 0) {
+            clearInterval(intervalId);
+        }
+    }, 1000);
+
+    // 5 秒後觸發真正刪除
+    const timeoutId = setTimeout(() => {
+        executeDelete(date, time, venue, deleteKey);
+    }, 5000);
+
+    pendingDeletes.set(deleteKey, {
+        timeoutId,
+        intervalId,
+        rowElement: tr,
+        originalHtml,
+        secondsLeft
+    });
+}
+
+function undoPendingDelete(deleteKey) {
+    const record = pendingDeletes.get(deleteKey);
+    if (!record) return;
+
+    clearTimeout(record.timeoutId);
+    clearInterval(record.intervalId);
+    
+    const tr = record.rowElement;
+    if (tr) {
+        tr.innerHTML = record.originalHtml;
+    }
+    
+    pendingDeletes.delete(deleteKey);
+    log(`↩ 已取消刪除賽程`);
+}
+
+async function executeDelete(date, time, venue, deleteKey, quiet = false) {
+    const record = pendingDeletes.get(deleteKey);
+    if (!record) return;
+
+    clearTimeout(record.timeoutId);
+    clearInterval(record.intervalId);
+    pendingDeletes.delete(deleteKey);
+
+    const tr = record.rowElement;
+    if (tr) {
+        tr.innerHTML = `
+            <td colspan="5" style="color: var(--muted); text-align: center; padding: 8px 12px; border-bottom: 1px solid var(--border);">
+                正在更新雲端資料...
+            </td>
+        `;
+    }
+
+    const success = await sendDeleteRequest(date, time, venue);
+    if (success) {
+        cacheSchedule = null; // 清除快取，以便下次取得最新資料
+        if (tr && tr.parentNode) {
+            tr.remove();
+        }
+        if (!quiet) {
+            log(`✓ 雲端賽程已刪除：${date} ${venue} ${time}`);
+        }
+    } else {
+        if (tr) {
+            tr.innerHTML = record.originalHtml;
+        }
+        if (!quiet) {
+            alert(`刪除失敗：${date} ${venue} ${time}，已自動恢復。`);
+        }
+    }
+}
+
+function flushPendingDeletes(quiet = true) {
+    if (pendingDeletes.size === 0) return;
+    for (const [key, record] of pendingDeletes.entries()) {
+        clearTimeout(record.timeoutId);
+        clearInterval(record.intervalId);
+        const [date, venue, time] = key.split('|');
+        executeDelete(date, time, venue, key, quiet);
+    }
+}
+
+async function sendDeleteRequest(date, time, venue) {
+    if (!CONFIG.API_URL || CONFIG.API_URL.startsWith('<<<')) {
+        log('✗ 刪除失敗：未設定 CONFIG.API_URL');
+        return false;
+    }
+
+    const payload = {
+        action: 'deleteSchedule',
+        token: CONFIG.API_TOKEN,
+        date,
+        time,
+        venue
+    };
+
+    log('POST → API (delete) ' + CONFIG.API_URL);
+
+    try {
+        const res = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            redirect: 'follow',
+            body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        let data;
+
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            data = { raw: text };
+        }
+
+        if (!res.ok || (data && data.ok === false) || (data && data.status === 'error')) {
+            log('✗ 雲端刪除失敗 ' + text);
+            return false;
+        }
+
+        return true;
+    } catch (err) {
+        log('✗ 雲端刪除錯誤 ' + err.message);
+        return false;
+    }
 }
 
 // 直接開啟 Google 的表格檢視（使用已發布連結將 CSV 改為 HTML 頁面）
