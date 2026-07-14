@@ -22,7 +22,7 @@ const CONFIG = {
 
     // Apps Script Web App URL
     // 部署的 API 端點 (用於寫入資料)
-    API_URL: "https://script.google.com/macros/s/AKfycbwEBGY306I1-SF7x8sfwyZ_LKiKjFbQAnMvWaCPR22m2Ka9RZU-BUQwvfqvn1D4GEfx/exec",
+    API_URL: "https://script.google.com/macros/s/AKfycbxPhQTE1FeeQSDQfaBSGv-M8S-DPavA0qpEZzVyVIxA-FHFcyPUV15eds4eBh616GDA3Q/exec",
 
     // API Token - 寫入端點的簡易驗證令牌
     // 必須與 GAS Script Properties 中的 API_TOKEN 設定值一致
